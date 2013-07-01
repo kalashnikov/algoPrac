@@ -1,3 +1,8 @@
+// 
+// Simulate 6174 as Kaprekar's constant
+// Ref: http://en.wikipedia.org/wiki/6174_%28number%29
+//
+
 #include <iostream>
 #include <cstdio>
 #include <ctime>
