@@ -6,6 +6,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <omp.h>
+
+#define OMP 11
 
 using namespace std;
 
@@ -16,7 +19,17 @@ int calResult(int i){
         return calResult(i*2);
 }
 
+void Test( int n )
+{
+    cout << "<T:" << omp_get_thread_num() << "> - " << n << "n" << endl;
+}
+
 int main(){
+
+    #pragma omp parallel
+    {
+        Test( 0 );
+    }
 
     int max   = 0;
     int tmp   = 0;
