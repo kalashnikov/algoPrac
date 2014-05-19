@@ -29,7 +29,7 @@ class Sticker < CouchRest::Model::Base
   timestamps!
 
   design do
-    view :by_name
+    view :by_id
   end
 end
 
@@ -68,8 +68,8 @@ $OPLIST.each do |opl|
             page.css('li.mdMN02Li').each do |o|
                 
                 imglink = "https://store.line.me" + o.css('a')[0]['href']     # Get detail webpage link
-                imgsrc  = o.css('div.mdMN02Img img')[0]['src']                # Get Image Src Link
-                imgtext = o.css('div.mdMN02Desc')[0].text                     # Get Text
+                #imgsrc  = o.css('div.mdMN02Img img')[0]['src']                # Get Image Src Link
+                #imgtext = o.css('div.mdMN02Desc')[0].text                     # Get Text
 
                 dpage = Nokogiri::HTML(open(imglink, "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                                            "Accept-Language" => "zh-TW,zh;q=0.8,en;q=0.6,en-US;q=0.4",
@@ -79,9 +79,13 @@ $OPLIST.each do |opl|
                                           ))
                 dpage.encoding = 'utf-8'
 
-                dtext = dpage.css('p.mdMN07Desc')[0].text
-
                 did = imglink.split('=')[1]
+                dtext   = dpage.css('p.mdMN07Desc')[0].text
+                imgtext = dpage.css('h2.mdMN05Ttl')[0].text
+                
+                #imgsrc  = o.css('div.mdMN02Img img')[0]['src']                # Get Image Src Link
+                #imgsrc  = "https://sdl-stickershop.line.naver.jp/products/0/0/1//#{did}/LINEStorePC/main.png"
+                imgsrc  = dpage.css('div.mdMN05Img img')[0]['src']
       
 #                property :id,             Integer
 #                property :name,            String
@@ -98,7 +102,8 @@ $OPLIST.each do |opl|
                                       :tag => [],
                                       :detail => imglink,
                                       :description => dtext,
-                                      :thumbnail => imgsrc
+                                      :thumbnail => imgsrc,
+                                      :detailImg => "https://sdl-stickershop.line.naver.jp/products/0/0/1//#{did}/LINEStorePC/preview.png"
                                      )
                 sticker.save
 =begin
