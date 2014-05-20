@@ -4,6 +4,10 @@
 # This ruby script retrieve Sticker data from LINE official site
 # And save it into MongoDB
 #
+# http://api.mongodb.org/ruby/current/Mongo/Collection.html#find-instance_method
+# https://github.com/mongodb/mongo-ruby-driver/wiki/FAQ
+# https://github.com/mongodb/mongo-ruby-driver
+#
 
 require 'nokogiri'
 require 'open-uri'
@@ -12,9 +16,9 @@ require 'mongo'
 include Mongo
 
 # Setting for MongoDB
-db = MongoClient.new("localhost", 27017).db("obmWeb")
-auth = db.authenticate(account, password)
-coll = db["stickers"]
+$db = MongoClient.new("localhost", 27017).db("obmWeb")
+$auth = $db.authenticate(account, passwd)
+$coll = $db["stickers"]
 
 #
 $OPNAME = ["official","creator"]
@@ -73,7 +77,13 @@ $OPLIST.each do |opl|
                     "thumbnail" => imgsrc,
                     "detailImg" => detailImg 
             }
-            coll.insert(doc)
+
+            result = $coll.find("id" => did.to_i, :limit=>1 )
+            if !result
+                $coll.insert(doc)
+            else 
+                $coll.update({"id" => did.to_i}, doc)
+            end
         end
     end
 end
