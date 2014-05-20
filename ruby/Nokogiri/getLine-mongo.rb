@@ -14,6 +14,7 @@ include Mongo
 # Setting for MongoDB
 db = MongoClient.new("localhost", 27017).db("obmWeb")
 auth = db.authenticate(account, password)
+coll = db["stickers"]
 
 #
 $OPNAME = ["official","creator"]
@@ -26,10 +27,6 @@ newck  = "store_locale=zh_TW; store_lang=zh-hant; " + cookie
 
 $OPLIST.each do |opl|
     str = $OPNAME[$OPLIST.index(opl)]
-
-    # [MongoDB] Get Collection
-    coll = db[str]
-
     (1..30).each do |n|
         link = "#{opl}#{n}&listType=top"
         page = Nokogiri::HTML(open(link, "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -52,10 +49,11 @@ $OPLIST.each do |opl|
                                        ))
             dpage.encoding = 'utf-8'
 
-            did     = imglink.split('=')[1]
-            dtext   = dpage.css('p.mdMN07Desc')[0].text
-            imgtext = dpage.css('h2.mdMN05Ttl')[0].text
-            imgsrc  = dpage.css('div.mdMN05Img img')[0]['src']
+            did       = imglink.split('=')[1]
+            dtext     = dpage.css('p.mdMN07Desc')[0].text
+            imgtext   = dpage.css('h2.mdMN05Ttl')[0].text
+            imgsrc    = dpage.css('div.mdMN05Img img')[0]['src']
+            detailImg = dpage.css('div.mdMN07Img img')[0]['src']
 
             #                property :id,             Integer
             #                property :name,            String
@@ -67,13 +65,13 @@ $OPLIST.each do |opl|
 
             #                puts "#{did} #{imgtext} #{imglink} #{dtext} #{imgsrc} "
 
-            doc = { "id" => did,
+            doc = { "id" => did.to_i,
                     "name" => imgtext,
                     "tag" => { },
                     "detail" => imglink,
                     "description" => dtext,
                     "thumbnail" => imgsrc,
-                    "detailImg" => "https://sdl-stickershop.line.naver.jp/products/0/0/1//#{did}/LINEStorePC/preview.png"
+                    "detailImg" => detailImg 
             }
             coll.insert(doc)
         end
