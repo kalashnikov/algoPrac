@@ -14,7 +14,7 @@ include Mongo
 
 # Setting for MongoDB
 $db = MongoClient.new("localhost", 27017).db("obmWeb")
-$auth = $db.authenticate(account, passwd)
+$auth = $db.authenticate("obm", "back54321")
 $coll = $db["stickers"]
 
 # Setting for LINE Site
