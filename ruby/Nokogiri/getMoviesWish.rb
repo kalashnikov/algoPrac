@@ -8,12 +8,13 @@ require 'set'
 include Mongo
 #
 # This script get Douban movie watch list and save into MongoDB
-# Example: http://movie.douban.com/people/kalashnikov/collect
+# Example: http://movie.douban.com/people/kalashnikov/wish
 # 
 
 # Setting for MongoDB
 $db = MongoClient.new("localhost", 27017).db("kala")
 $auth = $db.authenticate(ENV['MONGO_ACCOUNT'],ENV['MONGO_PASSWORD'])
+#$coll = $db["movieWish"]
 $coll = $db["movie"]
 
 # Extract movie info
@@ -47,11 +48,11 @@ def extractData(page)
         end
 
         mdate2 = "1000-01-01" if /^\D+/.match(mdate2.chomp)
+
         did    = /subject\/(\d+)\//.match(link)[1]    
         rating = rat[6].to_i
         dateutc= DateTime.strptime(date, '%Y-%m-%d').to_time.utc
 
-        p "#{did} #{rating} #{dateutc} | #{title} | #{comment}"
 
         doc = { "id" => did.to_i,
                 "title" => title,
@@ -59,20 +60,22 @@ def extractData(page)
                 "link" => link,
                 "rating" => rating,
                 "date" => dateutc,
+                "mdate" => mdate2,
                 "comment" => comment
         }
 
-        #$coll.insert(doc)
         result = $coll.find("id" => did.to_i, :limit=>1 )
         if !result
             $coll.insert(doc)
+            p "INSERT"
         else 
             $coll.update({"id" => did.to_i}, doc)
+            p "UPDATE"
         end
     end
 end
 
-$url="http://movie.douban.com/people/kalashnikov/collect"
+$url="http://movie.douban.com/people/kalashnikov/wish"
 
 page = Nokogiri::HTML(open($url, "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                            "Accept-Language" => "zh-TW,zh;q=0.8,en;q=0.6,en-US;q=0.4",
@@ -86,7 +89,7 @@ page.css('div.paginator a').each do |l|
 
     # Get the max number of movie list
     link = l['href']
-    num  = /collect\?start=(\d+)&/.match(link)[1].to_i
+    num  = /wish\?start=(\d+)&/.match(link)[1].to_i
     max  = num if num > max
 end
 
@@ -94,7 +97,7 @@ end
 extractData(page)
 
 (15..max).step(15).each do |i|
-    link = "http://movie.douban.com/people/kalashnikov/collect?start=#{i}&amp;sort=time&amp;rating=all&amp;filter=all&amp;mode=grid"
+    link = "http://movie.douban.com/people/kalashnikov/wish?start=#{i}&amp;sort=time&amp;rating=all&amp;filter=all&amp;mode=grid"
     page = Nokogiri::HTML(open(link, "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                                "Accept-Language" => "zh-TW,zh;q=0.8,en;q=0.6,en-US;q=0.4",
                                "Connection" => "keep-alive",

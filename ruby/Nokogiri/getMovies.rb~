@@ -21,7 +21,6 @@ def extractData(page)
     page.css('div.item').each do |it|
        
         title  = it.css('li.title a em').text
-        mdate1 = it.css('li.intro').text.split('/')[0]
         imgsrc = it.css('div.pic a img')[0]['src']
         link   = it.css('li.title a')[0]['href']
         rat    = it.css('div.info li')[2].css('span')[0][:class]
@@ -33,20 +32,6 @@ def extractData(page)
         date   = it.css('div.info li')[2].css('span')[idx1].text
         comment= it.css('div.info li')[3].css('span')[0].text if it.css('div.info li').size>idx2 and it.css('div.info li')[3]
 
-        mdate2 = (mdate1.include?('(')) ? mdate1.split('(')[0] : mdate1
-
-        # Get date from detail page
-        if !mdate2.include?('-') and mdate2.size>4
-            dpage = Nokogiri::HTML(open(link, "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                                       "Accept-Language" => "zh-TW,zh;q=0.8,en;q=0.6,en-US;q=0.4",
-                                       "Connection" => "keep-alive",
-                                       "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.137 Safari/537.36"
-                                      ))
-            dpage.encoding = 'utf-8'
-            mdate2 = dpage.css('span[@class="year"]').text[1..4]
-        end
-
-        mdate2 = "1000-01-01" if /^\D+/.match(mdate2.chomp)
         did    = /subject\/(\d+)\//.match(link)[1]    
         rating = rat[6].to_i
         dateutc= DateTime.strptime(date, '%Y-%m-%d').to_time.utc
