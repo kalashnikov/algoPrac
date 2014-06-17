@@ -5,7 +5,6 @@
 # And save it into MongoDB
 #
 # http://api.mongodb.org/ruby/current/Mongo/Collection.html#find-instance_method
-# http://api.mongodb.org/ruby/1.10.1/Mongo/Collection.html#find_and_modify-instance_method
 # https://github.com/mongodb/mongo-ruby-driver/wiki/FAQ
 # https://github.com/mongodb/mongo-ruby-driver
 #
@@ -18,7 +17,7 @@ include Mongo
 
 # Setting for MongoDB
 $db = MongoClient.new("localhost", 27017).db("obmWeb")
-$auth = $db.authenticate("obm", "back54321")
+$auth = $db.authenticate(account, passwd)
 $coll = $db["stickers"]
 
 #
@@ -56,7 +55,6 @@ $OPLIST.each do |opl|
 
             did       = imglink.split('=')[1]
             dtext     = dpage.css('p.mdMN07Desc')[0].text
-            dprice    = dpage.css('p.mdMN05Price')[0].text.gsub!(/￥/,"").to_i*0.3
             imgtext   = dpage.css('h2.mdMN05Ttl')[0].text
             imgsrc    = dpage.css('div.mdMN05Img img')[0]['src']
             detailImg = dpage.css('div.mdMN07Img img')[0]['src']
@@ -72,14 +70,11 @@ $OPLIST.each do |opl|
             #                puts "#{did} #{imgtext} #{imglink} #{dtext} #{imgsrc} "
 
             doc = { "id" => did.to_i,
-                    "sticker_id" => did.to_i,
                     "name" => imgtext,
                     "tag" => { },
                     "detail" => imglink,
                     "description" => dtext,
-                    "price" => dprice.to_i,
                     "thumbnail" => imgsrc,
-                    "weigth" => (n*2).to_i,
                     "detailImg" => detailImg 
             }
 
