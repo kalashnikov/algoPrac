@@ -1,3 +1,4 @@
+#!/usr/local/rvm/rubies/ruby-2.0.0-p247/bin/ruby
 require 'nokogiri'
 require 'open-uri'
 require 'openssl'
@@ -10,6 +11,11 @@ include Mongo
 $db = MongoClient.new("localhost", 27017).db("obmWeb")
 $auth = $db.authenticate(ENV['MONGO_WEB_ACCOUNT'],ENV['MONGO_WEB_PASSWORD'])
 $coll = $db["stickers"]
+
+$priceTable=Hash.new
+$priceTable[30]=20
+$priceTable[60]=50
+$priceTable[90]=75
 
 # This function get Sticker information from Official Site by ID 
 def getLineByID(id)
@@ -27,6 +33,7 @@ def getLineByID(id)
                                ))
     dpage.encoding = 'utf-8'
 
+    # Next if Official Site do not have this sticker
     return if !dpage.css('p.mdMN07Desc')[0]
 
     did       = imglink.split('=')[1]
@@ -35,6 +42,13 @@ def getLineByID(id)
     imgtext   = dpage.css('h2.mdMN05Ttl')[0].text
     imgsrc    = dpage.css('div.mdMN05Img img')[0]['src']
     detailImg = dpage.css('div.mdMN07Img img')[0]['src']
+
+    # Check Img Src Link 
+    begin
+        open(imgsrc) {}
+    rescue
+        return  
+    end
 
     #                property :id,             Integer
     #                property :name,            String
@@ -52,33 +66,45 @@ def getLineByID(id)
             "tag" => { },
             "detail" => imglink,
             "description" => dtext,
-            "price" => dprice.to_i,
+            "price" => $priceTable[dprice.to_i],
             "thumbnail" => imgsrc,
             "weigth" => 1,
             "detailImg" => detailImg 
     }
 
-    $coll.insert(doc)
     puts "=> Insert #{did} : #{imglink} ... "
+    $coll.insert(doc)
+    #result = $coll.find("id" => did.to_i, :limit=>1 )
+    #if !result
+    #    $coll.insert(doc)
+    #    puts "=> Insert #{did} : #{imglink} ... "
+    #else
+    #    $coll.update({"id" => did.to_i}, doc)
+    #end
+
+#    $coll.insert(doc)
+#    puts "=> Insert #{did} : #{imglink} ... "
 end
 
 
 idxSet=Set.new
 
 count=0
-limit=600
+limit=2000
 startIdx=0
 $coll.find({"id"=>{"$gt"=>1000000}}).sort( {id: -1 }).each do |f|
     idxSet.add(f["id"].to_i)
-    count+=1
-    if count==35
+    if count<100
+        count+=1
         startIdx = f["id"]
-        break
     end
 end
 
+#startIdx=1000001
 endIdx=startIdx+limit
 idxSet=Set.new((startIdx..endIdx).to_a)-idxSet
+
+#p idxSet.size
 
 puts "### Start from #{startIdx} " 
 puts "### Scan for Range: #{limit} " 
@@ -86,3 +112,5 @@ puts "### Scan for Range: #{limit} "
 idxSet.each do |i|
     getLineByID(i)
 end
+=begin
+=end
