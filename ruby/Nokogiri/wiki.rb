@@ -6,6 +6,11 @@ require 'wikipedia'
 # Ref.1 : https://github.com/kenpratt/wikipedia-client
 # Ref.2 : http://timeline.knightlab.com/
 #
+# Use literatureBook.txt file for input file
+# Get from http://ja.wikipedia.org/wiki/Category:%E6%97%A5%E6%9C%AC%E6%96%87%E5%AD%A6%E5%8F%B2
+#
+# Result example: http://hikarihe.com/japanBook.html
+#
 
 Wikipedia.Configure {
     domain 'ja.wikipedia.org'
