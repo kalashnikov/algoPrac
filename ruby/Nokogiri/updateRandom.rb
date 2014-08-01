@@ -18,6 +18,12 @@ n = $coll.find({})
 count = 0
 n.each do |i|
     i["random"] = i["description"].hash * Time.now.hash % 100000000  
-    $coll.update({"id" => i["id"]}, i, {:upsert=>true})
+    i["update_at"] = Time.now.utc
+    begin 
+        $coll.update({"id" => i["id"]}, i, {:upsert=>true})
+    rescue
+        puts "ERROR: #{i["id"]}"
+    end
 end
 
+puts %x[date]

@@ -13,7 +13,7 @@ $auth = $db.authenticate(ENV['MONGO_WEB_ACCOUNT'],ENV['MONGO_WEB_PASSWORD'])
 $coll = $db["stickers"]
 
 $priceTable=Hash.new
-$priceTable[30]=20
+$priceTable[30]=25
 $priceTable[60]=50
 $priceTable[90]=75
 
@@ -87,30 +87,31 @@ def getLineByID(id)
 end
 
 
+scanAll = true
 idxSet=Set.new
 
 count=0
-limit=2000
+limit=6000
 startIdx=0
 $coll.find({"id"=>{"$gt"=>1000000}}).sort( {id: -1 }).each do |f|
     idxSet.add(f["id"].to_i)
-    if count<100
+    if !scanAll and count<100 
         count+=1
         startIdx = f["id"]
     end
 end
 
-#startIdx=1000001
+startIdx=1000000
 endIdx=startIdx+limit
 idxSet=Set.new((startIdx..endIdx).to_a)-idxSet
 
-#p idxSet.size
+p idxSet.size
 
 puts "### Start from #{startIdx} " 
 puts "### Scan for Range: #{limit} " 
 
+=begin
 idxSet.each do |i|
     getLineByID(i)
 end
-=begin
 =end

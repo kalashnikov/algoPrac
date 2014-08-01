@@ -285,7 +285,6 @@ def updateUserInfo(id)
     
     result = $coll.find("id" => id)
 
-
     if !result
         return 
         $coll.insert(doc)
@@ -302,11 +301,15 @@ def updateUserInfo(id)
             oldData["rate"] = $rateData
             oldData["checked"] = 1 
             $coll.update({"id" => id}, oldData)
+
+            print "\n### Wait ... ###\n"
+            if $rateData.size>60 
+                sleep($rateData.size/20)
+            else 
+                sleep(10)
+            end
         end
     end
-
-    print "\n### Wait 1 min ... ###\n"
-    sleep(60)
 end
 
 def doTask()

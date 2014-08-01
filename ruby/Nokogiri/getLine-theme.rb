@@ -14,7 +14,7 @@ include Mongo
 
 # Setting for MongoDB
 $db = MongoClient.new("localhost", 27017).db("obmWeb")
-$auth = $db.authenticate(account,passwd)
+$auth = $db.authenticate("obm", "back54321")
 $coll = $db["themes"]
 
 $priceTable=Hash.new
@@ -88,13 +88,11 @@ page.css('li.mdMN02Li').each do |o|
             "weigth" => (1*2).to_i,
             "detailImg" => detailImg 
     }
-    $coll.insert(doc)
-=begin
-    result = $coll.find("id" => did, :limit=>1 )
-    if !result
-        $coll.insert(doc)
-    else 
-        $coll.update({"id" => did}, doc)
-    end
-=end
+    #$coll.insert(doc)
+    #result = $coll.find("id" => did, :limit=>1 )
+    #if !result
+    #    $coll.insert(doc)
+    #else 
+        $coll.update({"id" => did}, doc, {:upsert=>true})
+    #end
 end

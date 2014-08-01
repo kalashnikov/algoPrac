@@ -13,7 +13,7 @@ $auth = $db.authenticate(ENV['MONGO_WEB_ACCOUNT'],ENV['MONGO_WEB_PASSWORD'])
 $coll = $db["stickers"]
 
 $priceTable=Hash.new
-$priceTable[30]=20
+$priceTable[30]=25
 $priceTable[60]=50
 $priceTable[90]=75
 
@@ -80,15 +80,15 @@ end
 idxSet=Set.new
 
 count=0
-limit=4000
+limit=200
 startIdx=0
 $coll.find({"id"=>{"$lt"=>1000000}}).sort( {id: -1 }).each do |f|
     idxSet.add(f["id"].to_i)
     count+=1
-#    if count==20
-#        startIdx = f["id"]
-#        break
-#    end
+    if count==50
+        startIdx = f["id"]
+        break
+    end
 end
 
 endIdx=startIdx+limit
