@@ -1,0 +1,1 @@
+/home/kalaexj/script/insertSticker.rb
