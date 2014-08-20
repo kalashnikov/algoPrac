@@ -88,29 +88,29 @@ defmodule Prime do
       |> length==0
   end
 
-  #defp genSieve(i,n), do: Enum.map(1..div(n,i), fn(x) -> x*i end)
-  defp removeMul(i,list), do: Enum.filter(list,fn(x) -> rem(x,i)!=0 end)
-
-  def allPrime(n,idx\\-1), do: primeList([],Enum.take(Stream.cycle(2..n),n-1),n,idx)
+  def  allPrime(n,idx\\-1), do: primeList([],Stream.take(2..n,n-1),n,idx)
+  defp removeMul(i,list),   do: Stream.filter(list,fn(x) -> rem(x,i)!=0 end)
   defp primeList(prime,list,n,idx) do
     cond do
       length(prime)==idx ->
         List.last(prime)
-      hd(list) > :math.sqrt(n) ->
-        result = List.to_tuple(prime ++ list)
-        if tuple_size(result) < idx do 
-          -1
-        else 
-          elem(result,idx-1)
-        end
+      List.last(Enum.to_list(Stream.take(list,1))) > :math.sqrt(n) ->
+        result = Stream.take(Stream.concat(prime,list), idx)
+        List.last(Enum.to_list(result))
       true -> 
-        [i|t] = list
+        [i] = Enum.to_list(Stream.take(list,1))
+        t = Stream.drop(list,1)
         primeList(prime++[i],removeMul(i,t),n,idx)
-        #primeList(prime++[i],t--genSieve(i,n),n,idx)
     end
   end
 end
 
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler 5
 #minNum = 20..1 |> Enum.filter(&Prime.isPrime(&1)==true) |> Enum.reduce(1, fn(x, acc) -> x * acc end)
 #IO.puts 10..1 |> Enum.filter(&rem(2520,&1)!=0) |> length==0
 #IO.puts 20..1 |> Enum.filter(&rem(2*2*2*3*minNum,&1)!=0) |> length==0
@@ -132,7 +132,8 @@ end
 # Find the n-th Prime
 #IO.puts Prime.allPrime(1_000,168)
 #IO.puts Prime.allPrime(1_000_000,1680)
-IO.puts Prime.allPrime(1_000_000,10001)
+#IO.puts Prime.allPrime(1_000_000,10001)
+IO.puts Prime.allPrime(1_000_000,50001)
 
 #============================================================================#
 #============================================================================#
