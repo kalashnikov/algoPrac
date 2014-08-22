@@ -212,5 +212,56 @@ end
 
 # Euler 10 
 # Find sum of Prime below 2_000_000 
-IO.puts Prime.bPrime(10_000_000,2_000_000)
+#IO.puts Prime.bPrime(10_000_000,2_000_000)
+      
+#============================================================================#
+#============================================================================#
+#============================================================================#
 
+defmodule Euler12 do 
+  def solve(list) do 
+    if length(list)>250 do
+      IO.puts Enum.reduce(list,1,fn(x,acc)->x*acc end) 
+    end
+  end
+end
+
+# Euler 12 
+#IO.puts inspect Enum.to_list(1..1000)
+#  |> Stream.map(&div(&1*(&1+1),2))
+      #|> Stream.map(&PrimeFactors.generate(&1))
+      #|> Stream.reject(&(length(&1)<250))
+      #|> Stream.map(&length(&1))
+  #|> Enum.map(fn(x)-> IO.puts x end)
+  #    |> Enum.to_list
+
+  #  |> Enum.map(&Euler12.solve(&1))
+
+  #PrimeFactors.generate() 
+
+
+      
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+#IO.puts Integer.parse(Float.to_string(:math.pow(2,15)))
+#  |> String.codepoints
+#  |> Enum.map(&String.to_integer(&1))
+#  |> Enum.sum
+
+
+# Euler25
+defmodule Euler25 do 
+  def bitlen(n), do: length(String.codepoints(Integer.to_string(Fib.fib(n))))
+end
+
+IO.puts Euler25.bitlen(7)
+
+IO.puts inspect Enum.to_list(1..20)
+  |> Stream.reject(&(Euler25.bitlen(&1)<2))
+  |> Enum.to_list
+      
+#============================================================================#
+#============================================================================#
+#============================================================================#
