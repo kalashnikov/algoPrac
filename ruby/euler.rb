@@ -50,20 +50,20 @@ t1 = Time.now.to_f
 #
 # Implements the Sieve of Eratosthenes.
 # Takes argument n and returns all primes up to n.
-#def sieve(n)
-#  # Array containing 0 through the max number
-#  s = (0..n).to_a
-#  # Set 0 and 1, nonprimes, to nil.
-#  s[0] = s[1] = nil
-#  s.each do |p|
-#    next unless p
-#    return s.compact if p * p > n
-#    # Set all values divisible by p that are above p squared to nil
-#    (p*p).step(n, p) { |m| s[m] = nil }
-#  end
-#  # Return the array without nil values
-#  s.compact
-#end
+def sieve(n)
+  # Array containing 0 through the max number
+  s = (0..n).to_a
+  # Set 0 and 1, nonprimes, to nil.
+  s[0] = s[1] = nil
+  s.each do |p|
+    next unless p
+    return s.compact if p * p > n
+    # Set all values divisible by p that are above p squared to nil
+    (p*p).step(n, p) { |m| s[m] = nil }
+  end
+  # Return the array without nil values
+  s.compact
+end
 #
 #def nth_prime(n)
 #  sieve([20*n, 2000000].min)[n-1]
@@ -257,6 +257,47 @@ end
 #============================================================================#
 #============================================================================#
 
+# Euler17
+
+#def getNum(n)
+#    
+#    numdb = { "1" => 3, "2" => 3, "3" => 5, "4" => 4, "5" => 4,
+#              "6" => 3, "7" => 5, "8" => 5, "9" => 4, "10"=> 3,
+#              "11"=> 6, "12"=> 6, "13"=> 8, "14"=> 8, "15"=> 7,
+#              "16"=> 7, "17"=> 9, "18"=> 8, "19"=> 8, "20"=> 6,
+#              "30"=> 6, "40"=> 5, "50"=> 5, "60"=> 5, "70"=> 7,
+#              "80"=> 6, "90"=> 6,"100"=> 7,"1000"=>8
+#    }
+#
+#    num = 0
+#    if n==1000 
+#        num = 3 + 8
+#    elsif n/100!=0
+#        num += numdb[(n/100).to_s].to_i + 7
+#        num += getNum(n%100) + 3 if n%100!=0 # 3: and
+#    elsif numdb.include?(n.to_s)
+#        num += numdb[n.to_s].to_i
+#    elsif n/10!=0 
+#        num += numdb[(n%10).to_s].to_i + numdb[((n/10)*10).to_s].to_i
+#    else 
+#        puts "ASSERT #{n}"
+#    end
+#    return num
+#end
+#
+#puts getNum(1)+getNum(2)+getNum(3)+getNum(4)+getNum(5)
+#puts getNum(115)
+#puts getNum(342)
+#
+#ans = 0
+#(1..1000).each do |n|
+#    ans += getNum(n)
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
 # Euler18
 #max = [] 
 #File.open("tri.txt").each do |l|
@@ -282,8 +323,40 @@ end
 #============================================================================#
 
 # Euler19
-#(1901..2000)
+# 1 Jan 1900 was a Monday.
+# Thirty days has September,
+# April, June and November.
+# All the rest have thirty-one,
+# Saving February alone,
+# Which has twenty-eight, rain or shine.
+# And on leap years, twenty-nine.
+# A leap year occurs on any year evenly divisible by 4, but not on a century unless it is divisible by 400.
+#
+# How many Sundays fell on the first of the month during the twentieth century (1 Jan 1901 to 31 Dec 2000)?
+#
 
+#num = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+#
+#def leap(n)
+#    leap = 0
+#    leap = 1 if n%400==0 
+#    leap = 1 if n%4==0 and n%100!=0
+#    return leap.to_i
+#end
+#
+#cur   = 0
+#total = 0
+#first = 0 
+#(1900..2000).each do |n|
+#    num.each do |m|
+#        cur   = cur + m
+#        cur   += 1 if m==28 and leap(n)
+#        cur   %= 7
+#        total += 1 if cur==0
+#    end
+#    first = total if n==1900 
+#end
+#ans = total-first
 
 #============================================================================#
 #============================================================================#
@@ -374,22 +447,129 @@ end
 #============================================================================#
 
 # Euler24
-def fib(n)
-    puts n if n<3
-    ans, f1, f2, n = 0, 1, 1, n-2 
-    while n!=0 
-        ans = f1 + f2
-        f1, f2, n = f2, ans, n-1
-    end
-    ans 
-end
 
-(100..1000000).each do |n|
-    if fib(n).to_s.length==1000 
-        ans = n 
-        break
-    end
-end
+
+#(0..9).to_a.permutation.each_with_index do |v,i|
+##    puts "#{i}: #{v}"
+#    if i==1_000_000-1
+#        ans = v.join 
+#    end
+#end
+
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler25
+#def fib(n)
+#    puts n if n<3
+#    ans, f1, f2, n = 0, 1, 1, n-2 
+#    while n!=0 
+#        ans = f1 + f2
+#        f1, f2, n = f2, ans, n-1
+#    end
+#    ans 
+#end
+#
+#(100..1000000).each do |n|
+#    if fib(n).to_s.length==1000 
+#        ans = n 
+#        break
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler26 
+#(1..1000).each do |n|
+#    str   = ""
+#    count = 0
+#    nem   = 1
+#    tab   = Hash.new
+#    while true
+#
+#        base= nem*10
+#        res = base % n
+#        dem = (base/n).to_s
+#        
+#        if res==0
+#            #puts "### #{n}: 0.#{str}" + dem + "\n"
+#            break
+#        end
+#
+#        key = "#{nem},#{dem}"
+#        str += dem 
+#        if tab.include?(key)
+#            if count-tab[key]>ans+1
+#                ans = count-tab[key]+1
+#                #puts "### #{n}: 0.#{str}"
+#            end
+#            break
+#        else
+#            tab[key]=count
+#            nem = res
+#            count+=1
+#        end
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler27
+#prime = Set.new(sieve(2000))
+#p1000 = Set.new(sieve(1000))
+#max = 0 
+#p1000.each do |b|
+#    (-1000..1000).each do |a|
+#        (0..100).each do |n|
+#            if !prime.include?(n*n+a*n+b)
+#                if n>max
+#                    max = n
+#                    ans = a*b
+#                end
+#                break
+#            end
+#        end
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler28
+#ans = 1
+#(1..500).each do |a|
+#    n    = 2*a+1
+#    ans += 4*(n*n) -6*(n-1)
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler29
+#all = Set.new
+#(2..100).each do |a|
+#    (a..100).each do |b|
+#        all.add(a**b)
+#        all.add(b**a)
+#    end
+#end
+#ans = all.size
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler30
+ans = (100..1000000).to_a.keep_if{|n| n.to_s.split(//).inject(0){|s,i| s+(i.to_i**5)}==n}.inject(0){|s,i|s+i}
+
 
 #============================================================================#
 #============================================================================#
