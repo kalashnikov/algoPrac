@@ -568,8 +568,190 @@ end
 #============================================================================#
 
 # Euler30
-ans = (100..1000000).to_a.keep_if{|n| n.to_s.split(//).inject(0){|s,i| s+(i.to_i**5)}==n}.inject(0){|s,i|s+i}
+#ans = (100..1000000).to_a.keep_if{|n| n.to_s.split(//).inject(0){|s,i| s+(i.to_i**5)}==n}.inject(0){|s,i|s+i}
 
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler31
+#list = [1,2,5,10,20,50,100]
+#
+#ans = 1 
+#(0..2).each do |a|
+#    if a*100 == 200
+#        ans+=1 
+#        break
+#    end
+#    (0..4).each do |b|
+#        if a*100+b*50 == 200 
+#            ans+=1 
+#            break
+#        end
+#        break if a*100+b*50 > 200 
+#        (0..10).each do |c|
+#            if a*100+b*50+c*20 == 200 
+#                ans+=1 
+#                break
+#            end
+#            break if a*100+b*50+c*20 > 200 
+#            (0..20).each do |d|
+#                if a*100+b*50+c*20+d*10 == 200 
+#                    ans+=1 
+#                    break
+#                end
+#                break if a*100+b*50+c*20+d*10 > 200 
+#                (0..40).each do |e|
+#                    if a*100+b*50+c*20+d*10+e*5 == 200 
+#                        ans+=1 
+#                        break
+#                    end
+#                    break if a*100+b*50+c*20+d*10+e*5 > 200 
+#                    (0..100).each do |f|
+#                        break if a*100+b*50+c*20+d*10+e*5+f*2 > 200 
+#                        g = 200 - (a*100+b*50+c*20+d*10+e*5+f*2)
+#                        ans+=1 
+#                    end
+#                end
+#            end
+#        end
+#    end
+#end
+
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler33
+
+#num = 1
+#dem = 1
+#(1..9).each do |b|
+#    (1..9).each do |a|
+#        next if a==b 
+#            (1..9).each do |c|
+#            next if c==a or c==b
+#            if ((a*10+b)/(b*10+c).to_f)==(a/c.to_f)
+#                puts "#{a}#{b}/#{b}#{c}"
+#                num *= a
+#                dem *= c
+#            end
+#        end
+#    end
+#end
+#puts "#{num}/#{dem}"
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler34
+
+def fac(n)
+    (1..n).reduce(1,:*)
+end
+
+#def fac(n)
+#    case n
+#    when 0
+#        return 1
+#    when 3
+#        return 6 
+#    when 4 
+#        return 24
+#    when 5
+#        return 120
+#    when 6 
+#        return 720 
+#    when 7 
+#        return 5040
+#    when 8 
+#        return 40320
+#    when 9
+#        return 362880
+#    else
+#        return n
+#    end
+#end
+#
+#def dfac(n)
+#    return n.to_s.split(//).inject(0){|s,x| s+fac(x.to_i)}
+#end
+#
+#def maxFac(n)
+#    (4..9).each do |i|
+#        return (0..i-1).to_a if fac(i)>(10**n)
+#    end
+#    return (0..9).to_a
+#end
+#
+#def checkFreq(a,b)
+#    return false if !(a-b).empty?
+#    ah = Hash.new
+#    bh = Hash.new
+#    a.uniq.map{|i| ah[i]=0}
+#    b.uniq.map{|i| bh[i]=0}
+#    a.map{|i| ah[i]+=1}
+#    b.map{|i| bh[i]+=1}
+#    ah.each do |k,v|
+#        return false if bh[k]!=v
+#    end
+#    return true
+#end
+#
+#def checkSumDig(p)
+#    tmp = [] 
+#    facArr = maxFac(p)
+#    #puts "#{p} | #{facArr.join}"
+#    com    = facArr.repeated_combination(p).to_a
+#    com.each do |n| 
+#        nn   = n.join.to_i
+#        sum  = n.inject(0){|s,i| s+fac(i)}
+#        suma = sum.to_s.split(//).map{|x| x.to_i}
+#        if checkFreq(n,suma) and nn>2
+#            tmp.push(sum)
+#            puts "#{n.join} (#{n.size}) | #{sum} (#{suma.size}) | #{n-suma}"
+#            puts nn
+#        end
+#    end
+#    return tmp
+#end
+#
+#ans = [] 
+#(1..7).each do |n|
+#    ans += checkSumDig(n)
+#end
+#ans = ans.inject(0){|s,x| s+x}
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler35
+
+def cir(n)
+    all = [n.to_i]
+    arr = n.to_s.split(//)
+    len = arr.length
+    (1..len-1).each do |i|
+        all.push(arr.rotate(i).join.to_i)
+    end
+    return all
+end
+
+#MAX = 1_000_000
+#ans  = 0 
+#prime = sieve(MAX)
+#pSet = Set.new(prime)
+#prime.each do |n|
+#    next if !pSet.include?(n)
+#    all = cir(n).uniq
+#    if all.size==all.delete_if{|x| !pSet.include?(x)}.size
+#        ans+=all.size
+#    end
+#    pSet -= all
+#end
 
 #============================================================================#
 #============================================================================#
