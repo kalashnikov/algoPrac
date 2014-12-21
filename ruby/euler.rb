@@ -730,15 +730,15 @@ end
 
 # Euler35
 
-def cir(n)
-    all = [n.to_i]
-    arr = n.to_s.split(//)
-    len = arr.length
-    (1..len-1).each do |i|
-        all.push(arr.rotate(i).join.to_i)
-    end
-    return all
-end
+#def cir(n)
+#    all = [n.to_i]
+#    arr = n.to_s.split(//)
+#    len = arr.length
+#    (1..len-1).each do |i|
+#        all.push(arr.rotate(i).join.to_i)
+#    end
+#    return all
+#end
 
 #MAX = 1_000_000
 #ans  = 0 
@@ -752,6 +752,75 @@ end
 #    end
 #    pSet -= all
 #end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler36
+#def pal_s(s)
+#    s.to_s == s.to_s.reverse
+#end
+#
+#ans = 0 
+#(1..1_000_000).each do |n|
+#    next if !pal_s(n) or !pal_s(n.to_s(2))
+#    ans += n
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler 42
+#list = Set.new 
+#(1..100).each do |d|
+#    num = (d)*(d+1)/2
+#    list.add(num)
+#end
+#
+#table = Hash.new
+#('A'..'Z').each_with_index do |i,d|
+#    table[i] = d+1 
+#end
+#
+#data = []
+#File.open("p042_words.txt").each do |l|
+#    data += l.chomp.gsub!(/"/,"").split(",")
+#end
+#
+#data.each do |w|
+#    t = w.to_s.split(//).inject(0){|s,x| s+table[x]}
+#    #puts "#{w}, #{t}"
+#    ans += 1 if list.include?(t) 
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler81
+#SIZE=80
+#cnt = 0
+#array = Array.new{|h,a| h[a]=Array.new}
+#File.open("p081_matrix.txt").each do |l|
+#    array[cnt] = l.chomp.split(",").collect{|x| x.to_i}
+#    cnt+=1
+#end
+#
+#(0..SIZE-1).each do |r|
+#    (0..SIZE-1).each do |c|
+#        l = r>0 ? array[r-1][c] : 1_000_000
+#        t = c>0 ? array[r][c-1] : 1_000_000
+#        if l==1_000_000 and t==1_000_000 
+#            l = 0
+#            t = 0
+#        end
+#        array[r][c] += l<t ? l : t  
+#    end
+#end
+#
+#ans = array[SIZE-1][SIZE-1]
 
 #============================================================================#
 #============================================================================#
