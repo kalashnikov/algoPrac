@@ -670,6 +670,60 @@ void euler48(){
     cout << sum << endl;
 }
 
+void euler50(){
+
+    bool debug = false;
+
+    unsigned int ans = 0, len = 0, mlen = 0; 
+
+    // Prime table
+    unsigned int max = 1000000;
+    unsigned int a[max];
+    memset(a, 1, sizeof(unsigned int)*max);
+    for (unsigned int i = 2; i < (max >> 1); ++i) {
+        if (a[i]) {
+            for (unsigned int j = i << 1; j < max; j += i)
+                a[j] = 0;
+        }
+    }
+
+    vector<unsigned int> vec; vec.reserve(max);
+
+    unsigned long total = 0, tlen = 0; 
+    for (unsigned int i = 2; i < max ; ++i ) { 
+        if ( a[i] ) {
+            total += i;
+            vec.push_back(i);
+            if ( debug ) cout << i << "(" << total << ") ";
+        }
+    }
+    if ( debug ) cout << endl;
+    
+    cout << total << endl; 
+
+    for (unsigned int i = 0; i < vec.size() ; i++) {
+        tlen = total;
+        if ( debug ) cout << tlen << " | ";
+        for (unsigned int j = vec.size()-1 ; j>i ; j-- ) {
+            if ( j-i+1 < mlen ) break;
+            if ( tlen < max && a[tlen] ) {
+                if ( j-i+1 > mlen ) {
+                    ans = tlen;
+                    mlen = j-i+1;
+                }
+                break;
+            } else { 
+                tlen -= vec[j];
+                if ( debug ) cout << tlen << "(" << vec[j] << ") ";
+            }
+        }
+        if ( debug ) cout << endl;
+        total -= vec[i];
+    }
+
+    cout << "### ANSWER : " << ans << ", length: " << mlen << endl;
+}
+
 void euler243() {
     
     long max = 700000;
@@ -756,7 +810,7 @@ int main(int argc, char** argv)
     int num = 1; 
     if (argc == 2 ) num = atoi(argv[1]);
 
-    euler49();
+    euler50();
 
     gettimeofday(&end, &tz);
     printf("Time: %d ms\n", (end.tv_usec - start.tv_usec) / 1000);
