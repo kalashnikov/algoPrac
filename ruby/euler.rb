@@ -616,6 +616,32 @@ end
 #    end
 #end
 
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler 32
+# Brutal-force solution... ugly...
+#array = []
+#(1..9999).each do |v|
+#    a = v.to_s.split(//)
+#    next if a.include?("0")
+#    next if a.length != a.uniq.length
+#    array.push(v)
+#end
+#
+#set = Set.new
+#array.combination(2).to_a.each do |n|
+#    pro = n[0]*n[1]
+#    ta  = pro.to_s.split(//)
+#    next if ta.include?("0")
+#    ta  = ta + n[0].to_s.split(//) + n[1].to_s.split(//)
+#    if ta and ta.length == 9 and ta.uniq.length == 9
+#        set.add(pro)
+#    end
+#end
+#
+#ans = set.reduce(:+)
 
 #============================================================================#
 #============================================================================#
@@ -853,26 +879,25 @@ end
 #============================================================================#
 
 #Euler 49 
-
-db = Hash.new{|h,a| h[a]=Array.new}
-primes = sieve(10000).keep_if{|v| v>1000}
-primes.each do |v|
-    arr = v.to_s.split(//).uniq
-    #next if arr.size < 4
-    key = arr.sort.join("_")
-    db[key].push(v.to_i)
-end
-
-db.each do |k,v|
-    next if v.size < 3
-    sv = v.sort
-    sv.permutation(2).to_a.each do |n|
-        next if n[1] < n[0]
-        if v.include?(n[1]+n[1]-n[0]) 
-            puts "#{n[0]}#{n[1]}#{n[1]+n[1]-n[0]}"
-        end
-    end
-end
+#db = Hash.new{|h,a| h[a]=Array.new}
+#primes = sieve(10000).keep_if{|v| v>1000}
+#primes.each do |v|
+#    arr = v.to_s.split(//).uniq
+#    #next if arr.size < 4
+#    key = arr.sort.join("_")
+#    db[key].push(v.to_i)
+#end
+#
+#db.each do |k,v|
+#    next if v.size < 3
+#    sv = v.sort
+#    sv.permutation(2).to_a.each do |n|
+#        next if n[1] < n[0]
+#        if v.include?(n[1]+n[1]-n[0]) 
+#            puts "#{n[0]}#{n[1]}#{n[1]+n[1]-n[0]}"
+#        end
+#    end
+#end
 
 #============================================================================#
 #============================================================================#
