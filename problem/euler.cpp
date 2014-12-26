@@ -724,6 +724,74 @@ void euler50(){
     cout << "### ANSWER : " << ans << ", length: " << mlen << endl;
 }
 
+void euler52() { 
+
+    bool flag = false, debug = false;
+
+    unsigned int limit = 6;
+    unsigned int i = 10, tmp;
+    unsigned int pow, pow6; 
+
+    while(1) { 
+
+        pow  = log10(i); 
+        pow6 = log10(6*i); 
+        
+        if ( pow == 10 ) break;
+        if ( pow6 == pow ) {
+
+            vector<int> a(10,0);
+
+            tmp = i;
+            while(tmp){
+                a[tmp%10]++;
+                tmp/=10;
+            }
+            
+            if ( debug ) {
+                cout << "### " << i << ": ";
+                for ( int j = 0; j<a.size() ; j++) 
+                    cout << a[j];
+                cout << endl;
+            }
+
+            flag = false;
+            for( unsigned int n = 2; n < limit+1; n++ ) { 
+                vector<int> b(a);
+                
+                tmp = i*n;
+                while(tmp){
+                    b[tmp%10]--;
+                    tmp/=10;
+                }           
+                
+                if ( debug ) {
+                    cout << "    => " << i*n << ": ";
+                    for ( unsigned int j = 0; j<b.size() ; j++) 
+                        cout << b[j] << " " ;
+                    cout << endl;
+                }
+
+                for( unsigned int j = 0; j<b.size(); j++) {
+                    if ( b[j]!=0 ) {
+                        flag = true;
+                        break;
+                    }
+                }
+
+                if ( flag ) break;
+            }
+
+            if ( !flag ) {
+                cout << "### Answer: " << i << endl;
+                cout << i*2 << " " << i*3 << " " << i*4 << " " << i*5 << " " << i*6 << endl;
+                return; 
+            }
+        }
+        i++;
+    }
+}
+
 void euler243() {
     
     long max = 700000;
@@ -810,7 +878,7 @@ int main(int argc, char** argv)
     int num = 1; 
     if (argc == 2 ) num = atoi(argv[1]);
 
-    euler50();
+    euler52();
 
     gettimeofday(&end, &tz);
     printf("Time: %d ms\n", (end.tv_usec - start.tv_usec) / 1000);
