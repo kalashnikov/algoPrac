@@ -1,7 +1,8 @@
 
+
 require 'set'
 
-ans= 0
+$ans= 0
 t1 = Time.now.to_f
 
 #============================================================================#
@@ -34,8 +35,8 @@ t1 = Time.now.to_f
 #    (n1+1..998).each do |n2|
 #        if n1*n1+n2*n2-(1000-n1-n2)*(1000-n1-n2)==0
 #            n3  = 1000-n1-n2
-#            ans = n1*n2*n3
-#            puts "#{n1}*#{n2}*#{n3}=#{ans}"
+#            $ans = n1*n2*n3
+#            puts "#{n1}*#{n2}*#{n3}=#{$ans}"
 #            break
 #        end
 #    end
@@ -73,7 +74,7 @@ end
 #  sieve(20000000).keep_if{|v| v<n}.inject{|sum,x| sum+x}
 #end
 
-#ans = sum_prime(2000000)
+#$ans = sum_prime(2000000)
 
 #============================================================================#
 #============================================================================#
@@ -101,7 +102,7 @@ end
 #      [20, 73, 35, 29, 78, 31, 90, 01, 74, 31, 49, 71, 48, 86, 81, 16, 23, 57, 05, 54],
 #      [01, 70, 54, 71, 83, 51, 54, 69, 16, 92, 33, 48, 61, 43, 52, 01, 89, 19, 67, 48]]
 #
-#ans = 0
+#$ans = 0
 #(0..19).each do |r|
 #    (0..19).each do |c|
 #        pro1 = pro2 = pro3 = pro4 = 0
@@ -109,7 +110,7 @@ end
 #        pro2 = data[r][c]*data[r][c+1]*data[r][c+2]*data[r][c+3] if (c+3)<20
 #        pro3 = data[r][c]*data[r+1][c+1]*data[r+2][c+2]*data[r+3][c+3] if (c+3)<20 and (r+3)<20
 #        pro4 = data[r][c]*data[r-1][c+1]*data[r-2][c+2]*data[r-3][c+3] if (c+3)<20 and (r+3)>=0
-#        ans  = [ans,pro1,pro2,pro3,pro4].max
+#        $ans  = [$ans,pro1,pro2,pro3,pro4].max
 #    end
 #end
 
@@ -243,7 +244,7 @@ end
 #2084960398013.400172393067166682,
 #5350353422647.252425087405407559]
 #
-#ans = data.inject{|s,v|s+v}
+#$ans = data.inject{|s,v|s+v}
 
 
 #============================================================================#
@@ -289,9 +290,9 @@ end
 #puts getNum(115)
 #puts getNum(342)
 #
-#ans = 0
+#$ans = 0
 #(1..1000).each do |n|
-#    ans += getNum(n)
+#    $ans += getNum(n)
 #end
 
 #============================================================================#
@@ -356,7 +357,7 @@ end
 #    end
 #    first = total if n==1900 
 #end
-#ans = total-first
+#$ans = total-first
 
 #============================================================================#
 #============================================================================#
@@ -407,10 +408,10 @@ end
 #    valList[c]=val 
 #end
 #
-#ans = 0
+#$ans = 0
 #data.sort_by!{|v| v }
 #data.each_with_index do |k,v|
-#    ans += (v+1)*valList[k] 
+#    $ans += (v+1)*valList[k] 
 #end
 
 #============================================================================#
@@ -440,7 +441,7 @@ end
 #    end
 #end
 #
-#ans = nlist.inject(0){|s,v| s+v}
+#$ans = nlist.inject(0){|s,v| s+v}
 
 #============================================================================#
 #============================================================================#
@@ -450,7 +451,7 @@ end
 #(0..9).to_a.permutation.each_with_index do |v,i|
 ##    puts "#{i}: #{v}"
 #    if i==1_000_000-1
-#        ans = v.join 
+#        $ans = v.join 
 #    end
 #end
 
@@ -460,19 +461,19 @@ end
 #============================================================================#
 
 # Euler25
-#def fib(n)
-#    puts n if n<3
-#    ans, f1, f2, n = 0, 1, 1, n-2 
-#    while n!=0 
-#        ans = f1 + f2
-#        f1, f2, n = f2, ans, n-1
-#    end
-#    ans 
-#end
+def fib(n)
+    puts n if n<3
+    $ans, f1, f2, n = 0, 1, 1, n-2 
+    while n!=0 
+        $ans = f1 + f2
+        f1, f2, n = f2, $ans, n-1
+    end
+    $ans 
+end
 #
 #(100..1000000).each do |n|
 #    if fib(n).to_s.length==1000 
-#        ans = n 
+#        $ans = n 
 #        break
 #    end
 #end
@@ -501,8 +502,8 @@ end
 #        key = "#{nem},#{dem}"
 #        str += dem 
 #        if tab.include?(key)
-#            if count-tab[key]>ans+1
-#                ans = count-tab[key]+1
+#            if count-tab[key]>$ans+1
+#                $ans = count-tab[key]+1
 #                #puts "### #{n}: 0.#{str}"
 #            end
 #            break
@@ -528,7 +529,7 @@ end
 #            if !prime.include?(n*n+a*n+b)
 #                if n>max
 #                    max = n
-#                    ans = a*b
+#                    $ans = a*b
 #                end
 #                break
 #            end
@@ -541,10 +542,10 @@ end
 #============================================================================#
 
 # Euler28
-#ans = 1
+#$ans = 1
 #(1..500).each do |a|
 #    n    = 2*a+1
-#    ans += 4*(n*n) -6*(n-1)
+#    $ans += 4*(n*n) -6*(n-1)
 #end
 
 #============================================================================#
@@ -559,14 +560,14 @@ end
 #        all.add(b**a)
 #    end
 #end
-#ans = all.size
+#$ans = all.size
 
 #============================================================================#
 #============================================================================#
 #============================================================================#
 
 # Euler30
-#ans = (100..1000000).to_a.keep_if{|n| n.to_s.split(//).inject(0){|s,i| s+(i.to_i**5)}==n}.inject(0){|s,i|s+i}
+#$ans = (100..1000000).to_a.keep_if{|n| n.to_s.split(//).inject(0){|s,i| s+(i.to_i**5)}==n}.inject(0){|s,i|s+i}
 
 #============================================================================#
 #============================================================================#
@@ -575,40 +576,40 @@ end
 # Euler31
 #list = [1,2,5,10,20,50,100]
 #
-#ans = 1 
+#$ans = 1 
 #(0..2).each do |a|
 #    if a*100 == 200
-#        ans+=1 
+#        $ans+=1 
 #        break
 #    end
 #    (0..4).each do |b|
 #        if a*100+b*50 == 200 
-#            ans+=1 
+#            $ans+=1 
 #            break
 #        end
 #        break if a*100+b*50 > 200 
 #        (0..10).each do |c|
 #            if a*100+b*50+c*20 == 200 
-#                ans+=1 
+#                $ans+=1 
 #                break
 #            end
 #            break if a*100+b*50+c*20 > 200 
 #            (0..20).each do |d|
 #                if a*100+b*50+c*20+d*10 == 200 
-#                    ans+=1 
+#                    $ans+=1 
 #                    break
 #                end
 #                break if a*100+b*50+c*20+d*10 > 200 
 #                (0..40).each do |e|
 #                    if a*100+b*50+c*20+d*10+e*5 == 200 
-#                        ans+=1 
+#                        $ans+=1 
 #                        break
 #                    end
 #                    break if a*100+b*50+c*20+d*10+e*5 > 200 
 #                    (0..100).each do |f|
 #                        break if a*100+b*50+c*20+d*10+e*5+f*2 > 200 
 #                        g = 200 - (a*100+b*50+c*20+d*10+e*5+f*2)
-#                        ans+=1 
+#                        $ans+=1 
 #                    end
 #                end
 #            end
@@ -641,7 +642,7 @@ end
 #    end
 #end
 #
-#ans = set.reduce(:+)
+#$ans = set.reduce(:+)
 
 #============================================================================#
 #============================================================================#
@@ -742,11 +743,11 @@ end
 #    return tmp
 #end
 #
-#ans = [] 
+#$ans = [] 
 #(1..7).each do |n|
-#    ans += checkSumDig(n)
+#    $ans += checkSumDig(n)
 #end
-#ans = ans.inject(0){|s,x| s+x}
+#$ans = $ans.inject(0){|s,x| s+x}
 
 #============================================================================#
 #============================================================================#
@@ -765,14 +766,14 @@ end
 #end
 
 #MAX = 1_000_000
-#ans  = 0 
+#$ans  = 0 
 #prime = sieve(MAX)
 #pSet = Set.new(prime)
 #prime.each do |n|
 #    next if !pSet.include?(n)
 #    all = cir(n).uniq
 #    if all.size==all.delete_if{|x| !pSet.include?(x)}.size
-#        ans+=all.size
+#        $ans+=all.size
 #    end
 #    pSet -= all
 #end
@@ -782,14 +783,14 @@ end
 #============================================================================#
 
 # Euler36
-#def pal_s(s)
-#    s.to_s == s.to_s.reverse
-#end
+def pal_s(s)
+    s.to_s == s.to_s.reverse
+end
 #
-#ans = 0 
+#$ans = 0 
 #(1..1_000_000).each do |n|
 #    next if !pal_s(n) or !pal_s(n.to_s(2))
-#    ans += n
+#    $ans += n
 #end
 
 #============================================================================#
@@ -816,7 +817,7 @@ end
 #data.each do |w|
 #    t = w.to_s.split(//).inject(0){|s,x| s+table[x]}
 #    #puts "#{w}, #{t}"
-#    ans += 1 if list.include?(t) 
+#    $ans += 1 if list.include?(t) 
 #end
 
 
@@ -848,7 +849,7 @@ end
 #    #d8d9d10=289 is divisible by 17
 #    next if ( v[7]*100+v[8]*10+v[9] ) % 17 != 0 
 #
-#    ans += v.join.to_i
+#    $ans += v.join.to_i
 #end
 
 #============================================================================#
@@ -873,7 +874,7 @@ end
 #============================================================================#
 
 #Euler 48 
-#ans = (1..10).inject{|s,n| s+(n**n) }.remainder(1000000000)
+#$ans = (1..10).inject{|s,n| s+(n**n) }.remainder(1000000000)
 
 #============================================================================#
 #============================================================================#
@@ -922,7 +923,7 @@ end
 #            end
 #        end
 #        if cnt == 7
-#            ans = v 
+#            $ans = v 
 #            flag = true
 #            break
 #        end
@@ -934,6 +935,206 @@ end
 #============================================================================#
 #============================================================================#
 
+# Euler 54
+
+#order = "AKQJT" + (1..9).to_a.reverse.join # AKQJT987654321
+#Order_list = order.split(//)               # Used for number sort 
+
+# 1 High Card: Highest value card.
+# 3 One Pair: Two cards of the same value.
+# 3 Two Pairs: Two different pairs.
+# 4 Three of a Kind: Three cards of the same value.
+# 5 Straight: All cards are consecutive values.
+# 6 Flush: All cards of the same suit.
+# 7 Full House: Three of a kind and a pair.
+# 8 Four of a Kind: Four cards of the same value.
+# 9 Straight Flush: All cards are consecutive values of same suit.
+# Royal Flush: Ten, Jack, Queen, King, Ace, in same suit.
+#def card_pow( chash, corder, csamesuit, csort )
+#    r4v = r3v = r2v = "1"
+#    isPair = isThree = isFour = is2Pair = false
+#    chash.each do |k,v|
+#        if v == 4
+#            isFour = true
+#            r4v = k
+#        elsif v == 3 
+#            isThree = true
+#            r3v = k
+#        elsif v == 2
+#            is2Pair = true if isPair
+#            isPair  = true
+#            r2v     = k if Order_list.index(k) < Order_list.index(r2v)
+#        end
+#    end
+#
+#    if corder and csamesuit 
+#        return 9, csort[0]
+#    elsif isFour  
+#        return 8, r4v 
+#    elsif isThree and isPair
+#        return 7, r3v
+#    elsif csamesuit 
+#        return 6, csort[0]
+#    elsif corder 
+#        return 5, csort[0]
+#    elsif isThree 
+#        return 4, r3v
+#    elsif is2Pair
+#        return 3, r2v
+#    elsif isPair 
+#        return 2, r2v
+#    else 
+#        return 1, csort[0]
+#    end
+#
+#    return -1, -1
+#end
+#
+#File.open("p054_poker.txt").each do |l|
+#
+#    win = false
+#
+#    card = l.chomp.split(" ")
+#   
+#    p1v = card[0][0] + card[1][0] + card[2][0] + card[3][0] +card[4][0]
+#    p2v = card[5][0] + card[6][0] + card[7][0] + card[8][0] +card[9][0]
+#
+#    p1s = card[0][1] + card[1][1] + card[2][1] + card[3][1] +card[4][1]
+#    p2s = card[5][1] + card[6][1] + card[7][1] + card[8][1] +card[9][1]
+#   
+#    p1sort     = p1v.split(//).sort_by{|v| Order_list.index(v) }.join
+#    p2sort     = p2v.split(//).sort_by{|v| Order_list.index(v) }.join
+#
+#    p1order    = order.include?(p1sort) # Straight
+#    p2order    = order.include?(p2sort) # Straight
+#
+#    p1samesuit = p1s.split(//).uniq.size==1 # Flush
+#    p2samesuit = p2s.split(//).uniq.size==1 # Flush
+#
+#    p1hash = p1v.split(//).each_with_object(Hash.new(0)){|key,hash| hash[key] += 1}
+#    p2hash = p2v.split(//).each_with_object(Hash.new(0)){|key,hash| hash[key] += 1}
+#
+#    p1pow, p1powv = card_pow(p1hash, p1order, p1samesuit, p1sort)
+#    p2pow, p2powv = card_pow(p2hash, p2order, p2samesuit, p2sort)
+#
+#    win = true if p1pow > p2pow or (p1pow == p2pow and Order_list.index(p1powv) < Order_list.index(p2powv) )
+#
+#    puts "#{card.inspect}: #{p1v} (#{p1sort}, #{p1order}) #{p2v} (#{p2sort}, #{p2order}) | #{p1s} (#{p1samesuit}) #{p2s} (#{p2samesuit}) | #{p1pow}, #{p1powv} : #{p2pow}, #{p2powv}  | #{win}"
+#
+#    $ans += 1 if win
+#end 
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler55 
+#(1..10000).each do |v|
+#    max = 50
+#
+#    n    = v + v.to_s.reverse.to_i
+#    max -= 1
+#
+#    while max!=0 and !pal_s(n.to_s) 
+#        n    = n + n.to_s.reverse.to_i
+#        max -= 1
+#    end
+#
+#    $ans += 1 if max==0
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler56
+#(1..100).each do |a|
+#    (1..100).each do |b|
+#        sum = (a**b).to_s.split(//).inject(0){|s,v| s += v.to_i}
+#        $ans = sum if sum > $ans 
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler57 
+#def euler57
+#    num = 1
+#    den = 1
+#    (1..1000).each do |n|
+#        if n==1
+#            num = 1 
+#            den = 2
+#        else
+#            tmp  = den 
+#            den  = den*2+num
+#            num  = tmp 
+#            $ans += 1 if Math.log10(den+num).to_i > Math.log10(den).to_i
+#            #puts "#{n} | #{den+num}/#{den}" 
+#        end
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler58
+#def euler58
+#    all = []
+#    max = 1_000_000_000
+#    prime = Set.new(sieve(max))
+#
+#    sum = 1.0
+#    pcount = 0.0 
+#    (3..1_000_000).step(2).each do |n|
+#        #( pcount += 1 and all.push(n*n) ) if prime.include?(n*n) 
+#        #( pcount += 1 and all.push(n*n-1*(n-1)) ) if prime.include?(n*n-(n-1)) 
+#        #( pcount += 1 and all.push(n*n-2*(n-1)) ) if prime.include?(n*n-2*(n-1)) 
+#        #( pcount += 1 and all.push(n*n-3*(n-1)) ) if prime.include?(n*n-3*(n-1))
+#        ( pcount += 1 ) if prime.include?(n*n) 
+#        ( pcount += 1 ) if prime.include?(n*n-(n-1)) 
+#        ( pcount += 1 ) if prime.include?(n*n-2*(n-1)) 
+#        ( pcount += 1 ) if prime.include?(n*n-3*(n-1))
+#        sum      += 4.0
+#        #puts "### #{n}: #{pcount/sum}"
+#        if n*n > max 
+#            puts "Too much..."
+#            return 
+#        elsif pcount/sum < 0.1
+#            $ans = n
+#            #puts all.inspect
+#            return 
+#        end
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler59 
+#def euler59
+#    File.open("p059_cipher.txt").each do |l|
+#        tmp  = []
+#        enc  = l.split(',') # byte array
+#        (97..122).to_a.permutation(3).each do |v|
+#            cnt = 0
+#            tmp = v.cycle.first(enc.size).map.with_index{|s,i| (s.to_i ^ enc[i].to_i).chr}
+#            out = tmp.join
+#            if out.include?(" the ")
+#                $ans = tmp.inject(0){|s,v| s+= v.ord.to_i}
+#                puts "#{v.inspect}: #{tmp.join} | ANS: #{$ans} | Key: #{v[0].chr}#{v[1].chr}#{v[2].chr}"
+#            end
+#        end
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
 
 
 #============================================================================#
@@ -961,9 +1162,11 @@ end
 #    end
 #end
 #
-#ans = array[SIZE-1][SIZE-1]
+#$ans = array[SIZE-1][SIZE-1]
 
 #============================================================================#
 #============================================================================#
 #============================================================================#
-puts "Project Euler problem x: Answer #{ans} found in #{((Time.now.to_f - t1) * 1000).round 3} ms."
+
+euler60
+puts "Project Euler problem x: answer #{$ans} found in #{((Time.now.to_f - t1) * 1000).round 3} ms."
