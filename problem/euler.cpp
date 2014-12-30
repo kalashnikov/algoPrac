@@ -70,7 +70,6 @@ bool isPandigital(long val){
     int nums[bit]; 
     memset(nums, 0, sizeof(int)*bit);
     
-    //string s = std::to_string(val);
     string s = patch::to_string(val);
     const char *ptr = s.c_str();
     while(*ptr!='\0'){
@@ -460,7 +459,6 @@ void euler40(){
     while(cnt!=7){
         bit = flog10(num) + 1;
         if(idx+bit>=pow(10,cnt)){
-            //const string s = std::to_string(num);
             const string s = patch::to_string(num);
             int dif = pow(10,cnt)-idx;
             tbit = s[dif-1]-'0';
@@ -792,6 +790,266 @@ void euler52() {
     }
 }
 
+void euler53() { 
+
+    double cnt = 0, num = 0, tnum = 0, tj, ti;
+    for ( unsigned long i = 23; i < 101 ; i++ ) {
+        for ( unsigned long j = 1 ; j < i ; j++ ) {
+            tj = j, ti = i, num = 1; 
+            while(tj!=0){
+                num *= ti--;
+                num /= tj--; 
+            }
+            if ( num>1000000 ) { 
+                cnt++;
+                //cout << "### " << num << " = C " << i << ", " << j << endl;
+            }
+        }
+    }
+    cout << "### Answer: " << cnt << endl;
+}
+
+//////////
+// calcul a^n%mod
+size_t power(size_t a, size_t n, size_t mod)
+{
+    size_t power = a;
+    size_t result = 1;
+ 
+    while (n)
+    {
+        if (n & 1)
+            result = (result * power) % mod;
+        power = (power * power) % mod;
+        n >>= 1;
+    }
+    return result;
+}
+ 
+// n−1 = 2^s * d with d odd by factoring powers of 2 from n−1
+bool witness(size_t n, size_t s, size_t d, size_t a)
+{
+    size_t x = power(a, d, n);
+    size_t y;
+ 
+    while (s) {
+        y = (x * x) % n;
+        if (y == 1 && x != 1 && x != n-1)
+            return false;
+        x = y;
+        --s;
+    }
+    if (y != 1)
+        return false;
+    return true;
+}
+ 
+/*
+ * if n < 1,373,653, it is enough to test a = 2 and 3;
+ * if n < 9,080,191, it is enough to test a = 31 and 73;
+ * if n < 4,759,123,141, it is enough to test a = 2, 7, and 61;
+ * if n < 1,122,004,669,633, it is enough to test a = 2, 13, 23, and 1662803;
+ * if n < 2,152,302,898,747, it is enough to test a = 2, 3, 5, 7, and 11;
+ * if n < 3,474,749,660,383, it is enough to test a = 2, 3, 5, 7, 11, and 13;
+ * if n < 341,550,071,728,321, it is enough to test a = 2, 3, 5, 7, 11, 13, and 17.
+ */
+
+// 
+// Miller-Rabin primality test
+//
+// http://rosettacode.org/wiki/Miller-Rabin_primality_test#C
+//
+bool is_prime_mr(size_t n)
+{
+    if (((!(n & 1)) && n != 2 ) || (n < 2) || (n % 3 == 0 && n != 3))
+        return false;
+    if (n <= 3)
+        return true;
+ 
+    size_t d = n / 2;
+    size_t s = 1;
+    while (!(d & 1)) {
+        d /= 2;
+        ++s;
+    }
+ 
+    if (n < 1373653)
+        return witness(n, s, d, 2) && witness(n, s, d, 3);
+    if (n < 9080191)
+        return witness(n, s, d, 31) && witness(n, s, d, 73);
+    if (n < 4759123141)
+        return witness(n, s, d, 2) && witness(n, s, d, 7) && witness(n, s, d, 61);
+    if (n < 1122004669633)
+        return witness(n, s, d, 2) && witness(n, s, d, 13) && witness(n, s, d, 23) && witness(n, s, d, 1662803);
+    if (n < 2152302898747)
+        return witness(n, s, d, 2) && witness(n, s, d, 3) && witness(n, s, d, 5) && witness(n, s, d, 7) && witness(n, s, d, 11);
+    if (n < 3474749660383)
+        return witness(n, s, d, 2) && witness(n, s, d, 3) && witness(n, s, d, 5) && witness(n, s, d, 7) && witness(n, s, d, 11) && witness(n, s, d, 13);
+    return witness(n, s, d, 2) && witness(n, s, d, 3) && witness(n, s, d, 5) && witness(n, s, d, 7) && witness(n, s, d, 11) && witness(n, s, d, 13) && witness(n, s, d, 17);
+}
+
+//////////
+
+void euler58() { 
+
+    //cout << sizeof(int) << " " << sizeof(unsigned int) << " " << sizeof(unsigned long) << " " << sizeof(bool) << endl;
+
+    unsigned int cnt = 0; 
+    double sum = 1.0;
+    unsigned int j = 3;
+    while(1){ 
+
+        if ( is_prime_mr(j*j) ) cnt++;
+        if ( is_prime_mr(j*j-1*(j-1)) ) cnt++;
+        if ( is_prime_mr(j*j-2*(j-1)) ) cnt++;
+        if ( is_prime_mr(j*j-3*(j-1)) ) cnt++;
+        sum += 4.0;
+        
+        if ( cnt/sum < 0.1 ) { 
+            cout << "### Answer : " << j << endl;
+            return;
+        }
+        j+=2;
+    }
+}
+
+void euler60() { 
+   
+    unsigned long ans = 0;
+
+    unsigned int max = 70000;
+    vector<bool> a(max,true);
+    for (unsigned int i = 2; i < (max >> 1); ++i) {
+        if (a[i]) {
+            for (unsigned int j = i << 1; j < max; j += i)
+                a[j] = false;
+        }
+    }
+
+    //set<unsigned int> seta;
+    vector<unsigned int> veca;
+    for ( unsigned int i = 2; i<max; i++ ) {
+        if ( a[i] ) {
+            //seta.insert(i);
+            veca.push_back(i);
+        }
+    }
+
+    a.clear();
+    
+    max = veca.size();
+    for ( unsigned int i = 0; i < max ; i++ ) { 
+        for ( unsigned int j = i+1; j < max ; j++ ) {
+           
+            unsigned int n1 = veca[i], n2 = veca[j];
+
+            // check n1n2 & n2n1
+            unsigned int n1n2 = n1*pow(10,flog10(n2)+1)+n2;
+            //if ( seta.find(n1n2)==seta.end() ) continue;
+            if ( !is_prime_mr(n1n2) ) continue;
+            unsigned int n2n1 = n2*pow(10,flog10(n1)+1)+n1;
+            //if ( seta.find(n2n1)==seta.end() ) continue; 
+            if ( !is_prime_mr(n2n1) ) continue;
+            
+            for ( unsigned int m = j+1; m < max ; m++ ) { 
+
+                unsigned int n3 = veca[m];
+                
+                // check n1n3 & n3n1
+                unsigned int n1n3 = n1*pow(10,flog10(n3)+1)+n3;
+                //if ( seta.find(n1n3)==seta.end() ) continue; 
+                if ( !is_prime_mr(n1n3) ) continue;
+                unsigned int n3n1 = n3*pow(10,flog10(n1)+1)+n1;
+                //if ( seta.find(n3n1)==seta.end() ) continue; 
+                if ( !is_prime_mr(n3n1) ) continue;
+                
+                // check n2n3 & n3n2
+                unsigned int n2n3 = n2*pow(10,flog10(n3)+1)+n3;
+                //if ( seta.find(n2n3)==seta.end() ) continue;
+                if ( !is_prime_mr(n2n3) ) continue;
+                unsigned int n3n2 = n3*pow(10,flog10(n2)+1)+n2;
+                //if ( seta.find(n3n2)==seta.end() ) continue;
+                if ( !is_prime_mr(n3n2) ) continue;
+
+                for ( unsigned int n = m+1; n < max ; n++ ) {
+
+                    unsigned int n4 = veca[n];
+
+                    // check n1n4 & n4n1
+                    unsigned int n1n4 = n1*pow(10,flog10(n4)+1)+n4;
+                    //if ( seta.find(n1n4)==seta.end() ) continue; 
+                    if ( !is_prime_mr(n1n4) ) continue;
+                    unsigned int n4n1 = n4*pow(10,flog10(n1)+1)+n1;
+                    //if ( seta.find(n4n1)==seta.end() ) continue; 
+                    if ( !is_prime_mr(n4n1) ) continue;
+
+                    // check n2n4 & n4n2
+                    unsigned int n2n4 = n2*pow(10,flog10(n4)+1)+n4;
+                    //if ( seta.find(n2n4)==seta.end() ) continue;
+                    if ( !is_prime_mr(n2n4) ) continue;
+                    unsigned int n4n2 = n4*pow(10,flog10(n2)+1)+n2;
+                    //if ( seta.find(n4n2)==seta.end() ) continue;
+                    if ( !is_prime_mr(n4n2) ) continue;
+
+                    // check n3n4 & n4n3
+                    unsigned int n3n4 = n3*pow(10,flog10(n4)+1)+n4;
+                    //if ( seta.find(n3n4)==seta.end() ) continue;
+                    if ( !is_prime_mr(n3n4) ) continue;
+                    unsigned int n4n3 = n4*pow(10,flog10(n3)+1)+n3;
+                    //if ( seta.find(n4n3)==seta.end() ) continue;
+                    if ( !is_prime_mr(n4n3) ) continue;
+                        
+                    //cout << "### Found: " << n1 << " " << n2 << " " << n3 << " " << n4 << endl; 
+
+                    for ( unsigned int k = n+1; k < max ; k++ ) {
+
+                        unsigned int n5 = veca[k];
+
+                        // check n1n5 & n5n1
+                        unsigned int n1n5 = n1*pow(10,flog10(n5)+1)+n5;
+                        //if ( seta.find(n1n5)==seta.end() ) continue; 
+                        if ( !is_prime_mr(n1n5) ) continue;
+                        unsigned int n5n1 = n5*pow(10,flog10(n1)+1)+n1;
+                        //if ( seta.find(n5n1)==seta.end() ) continue; 
+                        if ( !is_prime_mr(n5n1) ) continue;
+
+                        // check n2n5 & n5n2
+                        unsigned int n2n5 = n2*pow(10,flog10(n5)+1)+n5;
+                        //if ( seta.find(n2n5)==seta.end() ) continue;
+                        if ( !is_prime_mr(n2n5) ) continue;
+                        unsigned int n5n2 = n5*pow(10,flog10(n2)+1)+n2;
+                        //if ( seta.find(n5n2)==seta.end() ) continue;
+                        if ( !is_prime_mr(n5n2) ) continue;
+
+                        // check n3n5 & n5n3
+                        unsigned int n3n5 = n3*pow(10,flog10(n5)+1)+n5;
+                        //if ( seta.find(n3n5)==seta.end() ) continue;
+                        if ( !is_prime_mr(n3n5) ) continue;
+                        unsigned int n5n3 = n5*pow(10,flog10(n3)+1)+n3;
+                        //if ( seta.find(n5n3)==seta.end() ) continue;
+                        if ( !is_prime_mr(n5n3) ) continue;
+
+                        // check n4n5 & n5n4
+                        unsigned int n4n5 = n4*pow(10,flog10(n5)+1)+n5;
+                        //if ( seta.find(n4n5)==seta.end() ) continue;
+                        if ( !is_prime_mr(n4n5) ) continue;
+                        unsigned int n5n4 = n5*pow(10,flog10(n4)+1)+n4;
+                        //if ( seta.find(n5n4)==seta.end() ) continue;
+                        if ( !is_prime_mr(n5n4) ) continue;
+                        
+                        if ( ans == 0 || ans > (n1+n2+n3+n4+n5) ) { 
+                            ans = n1+n2+n3+n4+n5; 
+                            cout << "### Found: " << n1 << " " << n2 << " " << n3 << " " << n4 << " " << n5 << " => " << n1+n2+n3+n4+n5 << endl;
+                        }  
+                    }
+                }
+            }
+        }
+    }
+
+    return;
+}
+
 void euler243() {
     
     long max = 700000;
@@ -878,7 +1136,7 @@ int main(int argc, char** argv)
     int num = 1; 
     if (argc == 2 ) num = atoi(argv[1]);
 
-    euler52();
+    euler60();
 
     gettimeofday(&end, &tz);
     printf("Time: %d ms\n", (end.tv_usec - start.tv_usec) / 1000);
