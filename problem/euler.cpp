@@ -8,6 +8,7 @@
 #include <vector>
 #include <set>
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -1050,6 +1051,75 @@ void euler60() {
     return;
 }
 
+
+void euler61() { 
+
+    // Triangle    P3,n=n(n+1)/2      1, 3, 6, 10, 15, ...
+    // squared     P4,n=n2            1, 4, 9, 16, 25, ...
+    // Pentagonal  P5,n=n(3n−1)/2     1, 5, 12, 22, 35, ...
+    // Hexagonal   P6,n=n(2n−1)       1, 6, 15, 28, 45, ...
+    // Heptagonal  P7,n=n(5n−3)/2     1, 7, 18, 34, 55, ...
+    // Octagonal   P8,n=n(3n−2)       1, 8, 21, 40, 65, ...
+
+    vector<int> vec3, vec4, vec5, vec6, vec7, vec8;
+    vector<vector<int>* > vec;
+    vec.push_back(&vec3);
+    vec.push_back(&vec4);
+    vec.push_back(&vec5);
+    vec.push_back(&vec6);
+    vec.push_back(&vec7);
+    vec.push_back(&vec8);
+
+    int i = 1;
+    while( 1 ) {
+    
+        int v3 = i*(i+1)/2;
+        int v4 = i*i;
+        int v5 = i*(3*i-1)/2;
+        int v6 = i*(2*i-1);
+        int v7 = i*(5*i-3)/2;
+        int v8 = i*(3*i-2);
+    
+        if ( v3 >= 1000 && v3 < 10000 ) vec3.push_back(v3);
+        if ( v4 >= 1000 && v4 < 10000 ) vec4.push_back(v4);
+        if ( v5 >= 1000 && v5 < 10000 ) vec5.push_back(v5);
+        if ( v6 >= 1000 && v6 < 10000 ) vec6.push_back(v6);
+        if ( v7 >= 1000 && v7 < 10000 ) vec7.push_back(v7);
+        if ( v8 >= 1000 && v8 < 10000 ) vec8.push_back(v8);
+
+        if ( v3 >= 10000 && v4 >= 10000 && 
+             v5 >= 10000 && v6 >= 10000 &&
+             v7 >= 10000 && v8 >= 10000 ) break;
+        i++;
+    }
+
+    printf("### Size: %d %d %d %d %d %d\n", vec3.size(), vec4.size(), vec5.size(), vec6.size(), vec7.size(), vec8.size());
+
+    do {
+        for ( int i3 = 0; i3 < vec[0]->size(); i3++ ) {
+            for ( int i4 = 0; i4 < vec[1]->size(); i4++ ) {
+                if ( (*vec[0])[i3]%100 != (*vec[1])[i4]/100 ) continue;
+                for ( int i5 = 0; i5 < vec[2]->size(); i5++ ) { 
+                    if ( (*vec[1])[i4]%100 != (*vec[2])[i5]/100 ) continue;
+                    for ( int i6 = 0; i6 < vec[3]->size(); i6++ ) { 
+                        if ( (*vec[2])[i5]%100 != (*vec[3])[i6]/100 ) continue;
+                        for ( int i7 = 0; i7 < vec[4]->size(); i7++ ) { 
+                            if ( (*vec[3])[i6]%100 != (*vec[4])[i7]/100 ) continue;
+                            for ( int i8 = 0; i8 < vec[5]->size(); i8++ ) { 
+                                if ( (*vec[4])[i7]%100 != (*vec[5])[i8]/100 ) continue;
+                                if ( (*vec[5])[i8]%100 != (*vec[0])[i3]/100 ) continue;
+
+                                printf("### Found: %d %d %d %d %d %d => %ld\n", (*vec[0])[i3], (*vec[1])[i4], (*vec[2])[i5], (*vec[3])[i6], (*vec[4])[i7], (*vec[5])[i8], (*vec[0])[i3]+(*vec[1])[i4]+(*vec[2])[i5]+(*vec[3])[i6]+(*vec[4])[i7]+(*vec[5])[i8]);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } while(std::next_permutation(vec.begin(), vec.end()));
+}
+
 void euler243() {
     
     long max = 700000;
@@ -1136,7 +1206,7 @@ int main(int argc, char** argv)
     int num = 1; 
     if (argc == 2 ) num = atoi(argv[1]);
 
-    euler60();
+    euler61();
 
     gettimeofday(&end, &tz);
     printf("Time: %d ms\n", (end.tv_usec - start.tv_usec) / 1000);
