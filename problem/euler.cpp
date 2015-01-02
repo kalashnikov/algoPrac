@@ -1183,6 +1183,29 @@ void euler62() {
     cout << "### Answer: " << ans << endl;
 }
 
+//
+// Reference Solution by klokan 
+// https://projecteuler.net/thread=62&page=2#8365
+//
+void euler62_klokan(){ 
+    int N = 10000;
+    long long i,j,r;
+    map<string,int>mp;
+    map<string,long long>mp2;
+    string s;
+    for (i=300;i<N;++i)
+    {
+        stringstream we;
+        we << i*i*i;
+        we >> s;
+        sort(s.begin(),s.end());
+        mp[s]++;
+        if (mp[s]==5) break;
+        if (mp[s]==1) mp2[s]=i*i*i;
+    }
+    printf("%lld\n",mp2[s]);
+}
+
 void euler243() {
     
     long max = 700000;
@@ -1269,7 +1292,8 @@ int main(int argc, char** argv)
     int num = 1; 
     if (argc == 2 ) num = atoi(argv[1]);
 
-    euler62();
+    //euler62();
+    test();
 
     gettimeofday(&end, &tz);
     printf("Time: %d ms\n", (end.tv_usec - start.tv_usec) / 1000);
