@@ -1,14 +1,18 @@
 
 #include <iostream>
+#include <sstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
 #include <sys/time.h>
+#include <algorithm>
+#include <iterator>
 #include <vector>
 #include <set>
-#include <sstream>
-#include <algorithm>
+#include <map>
+
+#include <gmp.h>
 
 using namespace std;
 
@@ -1120,6 +1124,65 @@ void euler61() {
     } while(std::next_permutation(vec.begin(), vec.end()));
 }
 
+void euler62() {
+  
+    // Use GMP MP Library
+    // Integer Function: https://gmplib.org/manual/Integer-Functions.html#Integer-Functions
+    // Further: https://gmplib.org/manual/Algorithms.html#Algorithms
+    mpz_t n, tmpn; 
+
+    map<string, vector<int>*> table;
+    vector<int> *vecb, *vecn;
+
+    for( int i = 1; i<10000; i++) {
+        
+        mpz_init(n); mpz_init(tmpn);
+        mpz_set_ui(n,i);
+        mpz_pow_ui(n,n,3);
+        //mpz_out_str(stdout,10,n);
+        
+        vecb = new vector<int>(10,0);
+        while(mpz_cmp_ui(n,0)!=0){
+            (*vecb)[mpz_tdiv_r_ui(tmpn,n,10)]+=1;
+            mpz_tdiv_q_ui(n,n,10); 
+        }
+
+        std::ostringstream oss;
+        if (!vecb->empty())
+        {
+            // Convert all but the last element to avoid a trailing ","
+            std::copy(vecb->begin(), vecb->end()-1,
+                    std::ostream_iterator<int>(oss, ""));
+
+            // Now add the last element with no delimiter
+            oss << vecb->back();
+        }
+
+        if ( table.find(oss.str())!=table.end() ) {
+            vecn = table.find(oss.str())->second;
+            vecn->push_back(i);
+        } else {
+            vecn = new vector<int>();
+            vecn->push_back(i);
+            table.insert(std::pair<string, vector<int>* >(oss.str(), vecn));
+        }
+    }
+
+    unsigned long ans = 0;
+    for ( map<string, vector<int>*>::iterator itr = table.begin(); itr!=table.end(); itr++) {
+        if ( itr->second->size() == 5 ) {
+            cout << "### " << itr->first << " => "; 
+            for ( int i = 0; i < itr->second->size(); i++) {
+                cout << itr->second->at(i) << " "; 
+                unsigned long val = itr->second->at(i);
+                if ( ans == 0 || val < ans ) ans = val;
+            }
+            cout << endl;
+        }
+    }
+    cout << "### Answer: " << ans << endl;
+}
+
 void euler243() {
     
     long max = 700000;
@@ -1206,7 +1269,7 @@ int main(int argc, char** argv)
     int num = 1; 
     if (argc == 2 ) num = atoi(argv[1]);
 
-    euler61();
+    euler62();
 
     gettimeofday(&end, &tz);
     printf("Time: %d ms\n", (end.tv_usec - start.tv_usec) / 1000);
