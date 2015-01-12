@@ -2,6 +2,8 @@
 
 require 'set'
 
+$debug = false
+
 $ans= 0
 t1 = Time.now.to_f
 
@@ -1137,23 +1139,108 @@ end
 #============================================================================#
 
 # Euler62
-def euler62
-    set = Hash.new{|h,k| h[k] = [] } 
-    (1..10000).each do |i|
-        val = i*i*i 
-        str = val.to_s.split(//).each_with_object(Array.new(10,0)){|k,a| a[k.to_i] += 1}
-        set[str].push(i)
-    end
-    set.each do |k,v|
-        if v.size == 5
-            v.each do |i|
-                if $ans==0 or $ans > i
-                    $ans = i
-                end
-            end
-        end
-    end 
-end
+#def euler62
+#    set = Hash.new{|h,k| h[k] = [] } 
+#    (1..10000).each do |i|
+#        val = i*i*i 
+#        str = val.to_s.split(//).each_with_object(Array.new(10,0)){|k,a| a[k.to_i] += 1}
+#        set[str].push(i)
+#    end
+#    set.each do |k,v|
+#        if v.size == 5
+#            v.each do |i|
+#                if $ans==0 or $ans > i
+#                    $ans = i
+#                end
+#            end
+#        end
+#    end
+#    $ans = $ans**3
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler63
+#def euler63
+#    set     = Set.new
+#    ansList = []
+#    puts Math.log10(134217728)
+#    (1..10).each do |v|
+#        (1..35).each do |np|
+#            val = v**np
+#            pow = Math.log10(val).ceil
+#            break if pow<np 
+#            next if  pow>np
+#            ansList.push("#{v}^#{np}")
+#            set.add(v**np)
+#            $ans+=1
+#        end
+#    end
+#end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler64
+#def euler64
+#    val = 0
+#    min = 0 
+#    set = Set.new
+#    (2..10000).each do |r|
+#        num = 1
+#    
+#        set.clear()
+#        sr  = Math.sqrt(r)
+#        min = val = sr.floor
+#
+#        next if min*min==r
+#
+#        print "#{r}: " if $debug
+#
+#        num = ( r - val*val ) / num
+#       
+#        #print "(#{num})"
+#
+#        tval = 0 
+#        tmin = -min
+#        while ( ( sr - tmin ) / num ) > 1
+#            tval += 1
+#            tmin += num
+#            #print "#{tmin} #{( ( sr - tmin ) / num )}"
+#        end
+#        min = tmin 
+#        val = tval
+#
+#        print "(#{tval}_#{min}_#{num})" if $debug
+#        set.add("#{tval}_#{min}_#{num}")
+#
+#        freq = 1
+#        while true
+#            num = ( r - min*min ) / num
+#            
+#            tval = 0 
+#            tmin = -min
+#            while ( ( sr - tmin ) / num ) > 1
+#                tval += 1
+#                tmin += num
+#            end
+#            min = tmin 
+#            val = tval
+#
+#            str = "#{tval}_#{min}_#{num}"
+#            break if set.include?(str) 
+#            print " (#{str})" if $debug
+#            set.add(str)
+#            freq += 1
+#        end
+#        puts " # #{freq}" if $debug
+#        $ans += 1 if freq%2==1
+#    end
+#end
+
 
 #============================================================================#
 #============================================================================#
@@ -1186,5 +1273,5 @@ end
 #============================================================================#
 #============================================================================#
 
-euler62
+euler64
 puts "Project Euler problem x: answer #{$ans} found in #{((Time.now.to_f - t1) * 1000).round 3} ms."
