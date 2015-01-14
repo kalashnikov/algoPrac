@@ -2,7 +2,7 @@
 
 require 'set'
 
-$debug = false
+$debug = true 
 
 $ans= 0
 t1 = Time.now.to_f
@@ -1079,6 +1079,7 @@ end
 #    end
 #end
 
+
 #============================================================================#
 #============================================================================#
 #============================================================================#
@@ -1185,62 +1186,206 @@ end
 #============================================================================#
 
 # Euler64
-#def euler64
-#    val = 0
-#    min = 0 
-#    set = Set.new
-#    (2..10000).each do |r|
-#        num = 1
-#    
-#        set.clear()
-#        sr  = Math.sqrt(r)
-#        min = val = sr.floor
-#
-#        next if min*min==r
-#
-#        print "#{r}: " if $debug
-#
-#        num = ( r - val*val ) / num
-#       
-#        #print "(#{num})"
-#
-#        tval = 0 
-#        tmin = -min
-#        while ( ( sr - tmin ) / num ) > 1
-#            tval += 1
-#            tmin += num
-#            #print "#{tmin} #{( ( sr - tmin ) / num )}"
-#        end
-#        min = tmin 
-#        val = tval
-#
-#        print "(#{tval}_#{min}_#{num})" if $debug
-#        set.add("#{tval}_#{min}_#{num}")
-#
-#        freq = 1
-#        while true
-#            num = ( r - min*min ) / num
-#            
-#            tval = 0 
-#            tmin = -min
-#            while ( ( sr - tmin ) / num ) > 1
-#                tval += 1
-#                tmin += num
-#            end
-#            min = tmin 
-#            val = tval
-#
-#            str = "#{tval}_#{min}_#{num}"
-#            break if set.include?(str) 
-#            print " (#{str})" if $debug
-#            set.add(str)
-#            freq += 1
-#        end
-#        puts " # #{freq}" if $debug
-#        $ans += 1 if freq%2==1
-#    end
-#end
+def euler64
+    val = 0
+    min = 0 
+    set = Set.new
+    (2..10000).each do |r|
+        num = 1
+    
+        set.clear()
+        sr  = Math.sqrt(r)
+        min = val = sr.floor
 
+        next if min*min==r
+
+        print "#{r}: " if $debug
+
+        num = ( r - val*val ) / num
+       
+        #print "(#{num})"
+
+        tval = 0 
+        tmin = -min
+        while ( ( sr - tmin ) / num ) > 1
+            tval += 1
+            tmin += num
+            #print "#{tmin} #{( ( sr - tmin ) / num )}"
+        end
+        min = tmin 
+        val = tval
+
+        print "(#{tval}_#{min}_#{num})" if $debug
+        set.add("#{tval}_#{min}_#{num}")
+
+        freq = 1
+        while true
+            num = ( r - min*min ) / num
+            
+            tval = 0 
+            tmin = -min
+            while ( ( sr - tmin ) / num ) > 1
+                tval += 1
+                tmin += num
+            end
+            min = tmin 
+            val = tval
+
+            str = "#{tval}_#{min}_#{num}"
+            break if set.include?(str) 
+            print " (#{str})" if $debug
+            set.add(str)
+            freq += 1
+        end
+        puts " # #{freq}" if $debug
+        $ans += 1 if freq%2==1
+    end
+end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler65
+def euler65
+    vec = []
+    val = tmp = den = num = 0 
+    (0..98).each do |i|
+        val = i%3==1 ? 2*(i/3+1) : 1
+        vec.push(val)
+
+        den = 1 
+        num = vec.last
+        vec.reverse.drop(1).each do |r| 
+            tmp = num;
+            num = num * r + den; 
+            den = tmp;
+        end
+        
+        den = 2 * num + den;
+        $ans = den.to_s.split(//).inject(0){|sum,x| sum+x.to_i}
+    end
+end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+# Euler66
+# 
+# This problem is related to Euler64.
+# X, Y are the numerator and denominator of continued fractions
+#
+# Ref:
+# http://www.wikiwand.com/zh/%E4%BD%A9%E5%B0%94%E6%96%B9%E7%A8%8B
+# http://mathworld.wolfram.com/PellEquation.html
+#
+def euler66
+    max = 0
+    val = 0
+    min = 0 
+    set = Set.new
+    vec = [] 
+    (2..1000).each do |r|
+        num = 1
+    
+        set.clear()
+        vec.clear() 
+
+        sr  = Math.sqrt(r)
+        min = val = sr.floor
+
+        next if min*min==r
+
+        print "#{r}: " if $debug
+
+        num = ( r - val*val ) / num
+       
+        #print "(#{num})"
+
+        tval = 0 
+        tmin = -min
+        while ( ( sr - tmin ) / num ) > 1
+            tval += 1
+            tmin += num
+            #print "#{tmin} #{( ( sr - tmin ) / num )}"
+        end
+        min = tmin 
+        val = tval
+
+        print "(#{tval}_#{min}_#{num})" if $debug
+        set.add("#{tval}_#{min}_#{num}")
+        vec.push(tval)
+
+        freq = 1
+        while true
+            num = ( r - min*min ) / num
+            
+            tval = 0 
+            tmin = -min
+            while ( ( sr - tmin ) / num ) > 1
+                tval += 1
+                tmin += num
+            end
+            min = tmin 
+            val = tval
+
+            str = "#{tval}_#{min}_#{num}"
+            break if set.include?(str) 
+            print " (#{str})" if $debug
+            set.add(str)
+            vec.push(tval)
+            freq += 1
+        end
+        print " # #{freq}" if $debug
+
+        num = 1
+        if vec.size==1
+            den = vec.last
+            lnum = 2 
+            vec.reverse.drop(lnum).each do |v|
+                tval = den
+                den = v*den + num 
+                num = tval 
+            end
+            #print " | #{sr.floor} #{den} #{num}" if $debug 
+            num = sr.floor * den + num 
+        else 
+            vec_ = vec + vec
+
+            n = vec.size
+            tden = den 
+            tnum = num
+
+            # We need to continue trying ... 
+            (n..2*n).each do |nn|
+                tvec = vec_[0..nn-1]
+                den  = tvec.reverse.drop(1).last
+                tvec.reverse.drop(2).each do |v|
+                    tval = den
+                    den = v*den + num 
+                    num = tval 
+                end
+                num = sr.floor * den + num
+                
+                break if (num*num-den*den*r)==1
+                den = tden 
+                num = tnum
+            end 
+        end
+        
+        puts " => #{num} #{den} " if $debug
+
+        if max < num 
+            $ans = r
+            max  = num
+        end
+    end
+end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
 
 #============================================================================#
 #============================================================================#
@@ -1273,5 +1418,5 @@ end
 #============================================================================#
 #============================================================================#
 
-euler64
+euler66
 puts "Project Euler problem x: answer #{$ans} found in #{((Time.now.to_f - t1) * 1000).round 3} ms."
