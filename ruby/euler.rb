@@ -1,11 +1,11 @@
 
-
+require 'prime'
 require 'set'
 
-$debug = true 
+$debug = false 
 
-$ans= 0
-t1 = Time.now.to_f
+$ans = 0
+t1   = Time.now.to_f
 
 #============================================================================#
 #============================================================================#
@@ -1317,6 +1317,7 @@ def euler66
         set.add("#{tval}_#{min}_#{num}")
         vec.push(tval)
 
+        # This section get from Euler64
         freq = 1
         while true
             num = ( r - min*min ) / num
@@ -1348,12 +1349,12 @@ def euler66
                 den = v*den + num 
                 num = tval 
             end
-            #print " | #{sr.floor} #{den} #{num}" if $debug 
             num = sr.floor * den + num 
         else 
-            vec_ = vec + vec
-
             n = vec.size
+            vec_ = vec + vec # One frequent section is not enough
+
+            # variable backup
             tden = den 
             tnum = num
 
@@ -1368,7 +1369,7 @@ def euler66
                 end
                 num = sr.floor * den + num
                 
-                break if (num*num-den*den*r)==1
+                break if (num*num-den*den*r)==1 # Check if this fraction is any 
                 den = tden 
                 num = tnum
             end 
@@ -1386,6 +1387,67 @@ end
 #============================================================================#
 #============================================================================#
 #============================================================================#
+
+def euler68
+    s = [0,0,0,0,0]
+    (1..10).to_a.permutation do |v|
+        # Check for same value of each group
+        next if (v[0]+v[1]+v[2]) != (v[3]+v[2]+v[5]) 
+        next if (v[0]+v[1]+v[2]) != (v[4]+v[5]+v[6]) 
+        next if (v[0]+v[1]+v[2]) != (v[7]+v[6]+v[8]) 
+        next if (v[0]+v[1]+v[2]) != (v[9]+v[8]+v[1]) 
+        
+        # Select max value of this solution set
+        s0 = v[0]*100 + v[1]*10 + v[2]
+        s1 = v[3]*100 + v[2]*10 + v[5]
+        s2 = v[4]*100 + v[5]*10 + v[6]
+        s3 = v[7]*100 + v[6]*10 + v[8]
+        s4 = v[9]*100 + v[8]*10 + v[1]
+        s  = [ v[0], v[3], v[4], v[7], v[9] ]
+        max = "#{s0}#{s1}#{s2}#{s3}#{s4}".to_i if s.min == v[0]
+        max = "#{s1}#{s2}#{s3}#{s4}#{s0}".to_i if s.min == v[3]
+        max = "#{s2}#{s3}#{s4}#{s0}#{s1}".to_i if s.min == v[4]
+        max = "#{s3}#{s4}#{s0}#{s1}#{s2}".to_i if s.min == v[7]
+        max = "#{s4}#{s0}#{s1}#{s2}#{s3}".to_i if s.min == v[9]
+
+        # Use this solution set if its value is maximum
+        $ans = max if max > $ans 
+    end
+end
+
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+def euler69
+    max = 0 
+    (2..1000000).each do |n|
+        d = n.to_f / n.prime_division.inject(n){|p,nn| p*(1-(1.0/(nn.first)))}.round
+        #d = n.to_f / Prime.prime_division(n,Prime::EratosthenesGenerator.new).inject(n){|p,nn| p*(1-(1.0/(nn.first)))}.round
+        if d > max 
+            max  = d 
+            $ans = n 
+        end
+    end
+end
+
+#============================================================================#
+#============================================================================#
+#============================================================================#
+
+def euler70
+    min = 10000000 
+    (2..10000000).each do |n|
+        p = n.prime_division.inject(n){|p,nn| p*(1-(1.0/(nn.first)))}.round
+        next if n.to_s.split(//).sort != p.to_s.split(//).sort
+        d = n / p.to_f 
+        if d < min 
+            min  = d 
+            $ans = n 
+        end
+    end
+end
 
 #============================================================================#
 #============================================================================#
@@ -1418,5 +1480,9 @@ end
 #============================================================================#
 #============================================================================#
 
-euler66
+#a = 73317
+#b = 31773
+#puts a.to_s.split(//).sort == b.to_s.split(//).sort
+
+euler69
 puts "Project Euler problem x: answer #{$ans} found in #{((Time.now.to_f - t1) * 1000).round 3} ms."
