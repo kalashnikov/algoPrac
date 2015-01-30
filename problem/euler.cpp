@@ -16,6 +16,11 @@
 
 using namespace std;
 
+bool debug = false;
+
+typedef unsigned int uint64;
+typedef unsigned long ulong;
+
 namespace patch
 {
     template < typename T > std::string to_string( const T& n )
@@ -92,6 +97,37 @@ bool is_perfect_square(int n) {
         return false;
     int root(round(sqrt(n)));
     return n == root * root;
+}
+
+// Ref: http://stackoverflow.com/questions/3219112/checking-whether-two-numbers-are-permutation-of-each-other
+bool checkPermutation(unsigned long n1, unsigned long n2) {
+    unsigned long nn1 = n1, nn2 = n2;
+    while (nn1 > 0 && nn2 > 0) {
+        nn1 /= 10;
+        nn2 /= 10;
+    }
+    if (nn2 != nn1) // not the same length
+        return false;
+
+    unsigned long total1 = 0, total2 = 0;
+    while (n1 != 0) {
+        total1 += 1L << ((n1 % 10) * 6);
+        total2 += 1L << ((n2 % 10) * 6);
+        n1 /= 10;
+        n2 /= 10;
+    }
+    return total1 == total2;
+}
+
+/* Standard C Function: Greatest Common Divisor */
+int 
+gcd ( int a, int b )
+{
+  int c;
+  while ( a != 0 ) {
+     c = a; a = b%a;  b = c;
+  }
+  return b;
 }
 
 // ========================================================= //
@@ -569,8 +605,6 @@ void euler47(){
         }
     }
 
-    bool debug = false;
-
     int cnt = 0;
     long rem, num;
     for (long i = 644; i < max ;){
@@ -674,8 +708,6 @@ void euler48(){
 }
 
 void euler50(){
-
-    bool debug = false;
 
     unsigned int ans = 0, len = 0, mlen = 0; 
 
@@ -1140,13 +1172,15 @@ void euler62() {
         mpz_set_ui(n,i);
         mpz_pow_ui(n,n,3);
         //mpz_out_str(stdout,10,n);
-        
+       
+        // List for integral record 
         vecb = new vector<int>(10,0);
         while(mpz_cmp_ui(n,0)!=0){
             (*vecb)[mpz_tdiv_r_ui(tmpn,n,10)]+=1;
             mpz_tdiv_q_ui(n,n,10); 
         }
 
+        // List to String
         std::ostringstream oss;
         if (!vecb->empty())
         {
@@ -1204,6 +1238,190 @@ void euler62_klokan(){
         if (mp[s]==1) mp2[s]=i*i*i;
     }
     printf("%lld\n",mp2[s]);
+}
+
+void euler65(){
+
+    mpz_t n, r, tmpn;
+    unsigned long long limit = 1001;
+    unsigned long long max = 0, y = 0, lim = 0, ans = 0;
+    for ( unsigned long long d = 2; d < limit; d++ ) {
+        if ( is_perfect_square(d) ) continue;
+
+        bool flag = false;
+        unsigned long long x = 2;
+        mpz_init(n); mpz_init(r); mpz_init(tmpn);
+
+        while ( true ) {
+            mpz_set_ui(n,x);
+
+            // tmpn = x*x-1
+            mpz_pow_ui(tmpn,n,2);
+            mpz_sub_ui(tmpn,tmpn,1);
+            if ( mpz_mod_ui(r,tmpn,d)==0 ) { 
+                mpz_tdiv_q_ui(tmpn,tmpn,d);
+                mpz_sqrtrem(tmpn,r,tmpn);
+                if ( mpz_cmp_ui(r,0)==0 ) {  
+                //if ( mpz_perfect_power_p(tmpn)!=0 ) {
+                    cout << d << " => " << x << " | ";
+                    mpz_out_str(stdout,10,tmpn);
+                    cout << endl;
+                    if ( x > max ) { max = x; ans = d; } 
+                    break;
+                }
+            } 
+            x++;
+        }
+        
+        //lim = 10000*d;
+        //for ( unsigned long long x = 2 ; x <= lim ; x++ ) {
+        //    if ( (x*x-1)%d!=0 ) continue;
+        //    //if ( isSquare((x-1)/d) ) { 
+        //    if ( is_perfect_square((x*x-1)/d) ) { 
+        //        y = sqrt((x*x-1)/d); 
+        //        if (  (x*x-d*y*y) != 1 ) continue;
+        //        if ( x > max ) { max = x; ans = d; } 
+        //        cout << d << " => " << x << ", "<< y << " | " << (x*x) << " or " << (y*y) ;
+        //        flag = true;
+        //        break;
+        //    }
+        //}
+        //if ( !flag ) cout << " | X " << endl;
+        //else cout << endl;
+    }
+    cout << "### MAX when D <= " << limit-1 << " is " << ans << " with " << max << endl; 
+}
+
+void euler69(){
+
+    double phi = 0, pmax = 0 ;
+    unsigned int ans = 0, num = 0; 
+
+    // Prime table
+    unsigned int max = 1000000;
+    unsigned int a[max];
+    memset(a, 1, sizeof(unsigned int)*max);
+    for (unsigned int i = 2; i < (max >> 1); ++i) {
+        if (a[i]) {
+            for (unsigned int j = i << 1; j < max; j += i)
+                a[j] = 0;
+        }
+    }   
+
+    for ( unsigned int i = 2 ; i < max ; i++ ) {
+        phi = num = i;
+        if ( debug ) cout << i << ": ";
+        for ( unsigned int j = 2 ; j <= i ; j++ ) {
+            if ( a[j] && i%j==0 ) { 
+               phi *= 1 - 1.0 / j;
+               if ( debug ) cout << j << " ";
+               while ( num % j == 0 ) num/=j;
+            }
+            if ( num==1 ) break;
+        }
+        phi = (double) i / phi; 
+        if ( debug ) cout << " => " << phi << endl;
+        if ( phi > pmax ) {
+            if ( debug ) cout << pmax << " to " << phi << " @ " << i << endl;
+            ans = i;
+            pmax = phi;
+        }
+    }
+
+    cout << "### ANSWER : " << ans << endl;
+}
+
+void euler70(){
+
+    bool qflag = true;
+    double phi = 0, pmin = 2;
+    unsigned long ans = 0, num = 0; 
+
+    // Prime table
+    unsigned long max = 10000000;
+    vector<bool> a(max,true);
+    vector<unsigned long> b;
+    for (unsigned int i = 2; i < (max >> 1); ++i) {
+        if (a[i]) {
+            if ( i > 1000 ) { 
+                b.push_back(i); // Only consider prime factor bigger than 1000
+            }
+            for (unsigned int j = i << 1; j < max; j += i)
+                a[j] = false;
+        }
+    }
+
+    // 
+    // 1. Use two primes both bigger than 1000 to form the number
+    // 2. Only consider number below 10^7
+    //
+    // 100 ms solution
+    unsigned long long i;
+    vector<unsigned long>::iterator itr1;
+    vector<unsigned long>::iterator itr2;
+    for ( itr1 = b.begin(); itr1!=b.end()-1; itr1++ ) {
+        phi = num = i * (1- 1.0 / (*itr1) );
+        for ( itr2 = itr1+1; itr2!=b.end(); itr2++ ) {
+            i   = (*itr1)*(*itr2);
+            
+            if ( i > max ) break;
+
+            phi = i * ( 1 - 1.0 / (*itr1) ) * ( 1 - 1.0 / (*itr2) );
+            if ( !checkPermutation(i,phi) ) continue;  
+
+            phi = (double) i / phi; 
+            if ( phi < pmin ) {
+                cout << pmin << " to " << phi << " @ " << *itr1 << " x " << *itr2 << endl;
+                ans = i;
+                pmin = phi;
+            }
+        }
+    }
+
+    // 
+    // Brute-force ... no good
+    //
+    //for ( unsigned long i = 3 ; i < max ; i+=2 ) {
+    //    phi = num = i;
+    //    if ( debug ) cout << i << ": ";
+  
+    //    if ( i%3==0 ) continue;
+    //    if ( i%5==0 ) continue; 
+    //    if ( i%7==0 ) continue; 
+    //    if ( i%11==0 ) continue; 
+    //    if ( i%13==0 ) continue; 
+
+    //    qflag = false;
+    //    for ( unsigned long j = 3 ; j <= i ; j++ ) {
+    //        if ( a[j] && i%j==0 ) { 
+    //            phi *= 1 - 1.0 / j;
+    //            if ( debug ) cout << j << " ";
+    //            while ( num % j == 0 ) num/=j;
+    //        }
+    //        if ( num==1 ) break;
+    //        if ( a[num] && i%num==0 ) { // The last factor is prime, quick break 
+    //            phi *= 1 - 1.0 / j;
+    //            if ( debug ) cout << j << " ";
+    //            break;
+    //        }
+    //        // Quick break if this one have factor below 1000 
+    //        // 2044501 is 1049 x 1949
+    //        if ( j < 1000 ) { qflag = true; break; }
+    //    }
+    //    if ( qflag ) continue; // Don't try any more 
+    //    
+    //    if ( !checkPermutation(i,phi) ) continue;  
+
+    //    phi = (double) i / phi; 
+    //    if ( debug ) cout << " => " << phi << endl;
+    //    if ( phi < pmin ) {
+    //        cout << pmin << " to " << phi << " @ " << i << endl;
+    //        ans = i;
+    //        pmin = phi;
+    //    }
+    //}
+
+    cout << "### ANSWER : " << ans << endl;
 }
 
 void euler243() {
@@ -1292,8 +1510,7 @@ int main(int argc, char** argv)
     int num = 1; 
     if (argc == 2 ) num = atoi(argv[1]);
 
-    //euler62();
-    test();
+    euler70();
 
     gettimeofday(&end, &tz);
     printf("Time: %d ms\n", (end.tv_usec - start.tv_usec) / 1000);
