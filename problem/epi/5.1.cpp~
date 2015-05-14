@@ -1,0 +1,26 @@
+#include<iostream>
+#include<bitset>
+
+using namespace std;
+
+short Parity(unsigned long x){
+
+    x ^= x >> 32;
+    cout << (bitset<64>) x << endl;
+    x ^= x >> 16;
+    cout << (bitset<64>) x << endl;
+    x ^= x >> 8;
+    cout << (bitset<64>) x << endl;
+    x ^= x >> 4;
+    cout << (bitset<64>) x << endl;
+    x &= 0xf;
+    cout << (bitset<64>) x << endl;
+}
+
+int main(){
+
+    unsigned long in = 232532232632532;
+    cout << (bitset<64>) in << endl;
+    Parity(in);
+    return 0;
+}

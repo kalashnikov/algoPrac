@@ -1,0 +1,83 @@
+#include<iostream>
+#include<bitset>
+
+using namespace std;
+
+// 5.1 Parity Check (Brute-force)
+short pp(unsigned long x){
+
+    short result = 0;
+    while(x){
+        result ^= 1;
+        x &= (x-1);
+    }
+    return result;
+}
+
+// 5.1 Parity 
+const int lookTable = 0x6996; // 0b0110100110010110
+short Parity(unsigned long x){
+    x ^= x >> 32;
+    cout << (bitset<64>) x << endl;
+    x ^= x >> 16;
+    cout << (bitset<64>) x << endl;
+    x ^= x >> 8;
+    cout << (bitset<64>) x << endl;
+    x ^= x >> 4;
+    cout << (bitset<64>) x << endl;
+    x &= 0xf;
+    cout << (bitset<64>) x << endl;
+    return ( lookTable >> x ) & 1 ;
+}
+
+// 5.7 Compute x^y
+double powerXY(double x, int y){
+    double result = 1.0;
+    long long power = y; 
+    if ( y < 0 ) { 
+        power = -power;
+        x = 1.0 / x; 
+    }
+    // 1010  r    x 
+    //  101  1    x^2
+    //   10  x^2  x^4 
+    //    1  x^2  x^8
+    //    0  x^10 x^16 
+    while ( power ) { 
+        if ( power & 1 ) { 
+            result *= x; 
+        }
+        x *= x, power >>= 1;
+    }
+    return result;
+}
+
+string convertBase(const string& s, int b1, int b2) { 
+    bool is_negative = s.front() == '-';
+    int x = 0;
+    for (size_t i = (is_negative == true ? 1 : 0); i < s.size(); ++i){
+        x *= b1;
+        x += isdigit(s[i]) ? s[i] - '0' : s[i] - 'A' + 10; 
+    }
+
+    string result; 
+    do { 
+        int reminder = x % b2; 
+        result.push_back(reminder > 10 ? 'A' + reminder - 10 : '0' + reminder);
+        x /= b2; 
+    } while (x);
+
+    if (is_negative) {
+        result.push_back('-');
+    }
+    reverse(result.begin(), result.end());
+    return result;
+}
+
+int main(){
+    unsigned long in = 232532232632532;
+    cout << (bitset<64>) in << endl;
+    Parity(in);
+    cout << pp(in) << endl;
+    return 0;
+}
