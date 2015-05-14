@@ -1,0 +1,30 @@
+#include<iostream>
+#include<memory>
+
+using namespace std;
+
+template<typename T>
+struct ListNode {
+    T data;
+    shared_ptr<ListNode<T> > next;
+};
+
+shared_ptr<ListNode<int> > MergeSortedLinkedList(
+        shared_ptr<ListNode<int> > F,  
+        shared_ptr<ListNode<int> > L){
+    shared_ptr<ListNode<int> > dummy(new ListNode<int>);
+    auto tail = dummy;
+
+    while(F && L){
+        appendNode(F->data > L->data ? &F : &L, &tail);
+    }
+
+    tail->next = F ? F : L;
+    return dummy->next;
+}
+
+int main(){
+
+    
+    return 0;
+}
