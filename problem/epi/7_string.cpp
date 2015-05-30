@@ -5,6 +5,13 @@
 
 using namespace std;
 
+void reverse_string(string& s){
+    if ( s.length()==0 ) return;
+    int i = 0, j = s.length()-1;
+    while(i<j)
+        swap(s[i++],s[j--]);
+}
+
 // 7.1 Integer & String conversion
 string intToString(int x){
 
@@ -100,6 +107,14 @@ int main(){
     string t = "GACGCCA";
     string s = "CGC";
     cout << RabinKarp(t,s) << endl;
+
+
+    struct foo { 
+    char a;
+    char* b;
+    };
+
+    cout << sizeof(foo) << endl;
 
     return 0;
 }
