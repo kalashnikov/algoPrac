@@ -2,10 +2,27 @@
 #include<algorithm>
 #include<vector>
 #include<array>
+#include<random>
+#include<cstring>
 
 using namespace std;
 
 const bool debug = false;
+
+int bsearch(int t, const vector<int>& A){
+    int L = 0, U = A.size() - 1;
+    while ( L <= U ) {
+        int M = ( L + U ) / 2;
+        if ( A[M] < t ) {
+            L = M+1;
+        } else if ( A[M] == t ) {
+            return M; 
+        } else { 
+            U = M-1; 
+        }
+    }
+    return -1;
+}
 
 // 12.10 Find min and max simultaneously
 pair<int, int> findMinMax(const vector<int>& A){
@@ -32,7 +49,7 @@ int partitionAroundPivot(int left, int right, int pivot_idx, vector<int>* A){
     int new_pivot_idx = left;
     swap(A_ref[pivot_idx], A_ref[right]);
     for(int i=left; i<right; i++){
-        if(A_ref[i] > pivot_value){
+        if(A_ref[i] > pivot_value){ // Larger places at front
             swap(A_ref[i],A_ref[new_pivot_idx++]);
         }
     }
@@ -63,36 +80,21 @@ int findKthLargest(vector<int> A, int k){
 int partition( vector<int>& vec, int lo, int hi) { 
    int pivot = vec[(lo+hi)/2]; 
 
-   // 
-   // lo==hi will make one time self-swap
-   // and will make lo=lo+1, which end this recursive loop
-   //
+   int temp;
    while ( lo<=hi )
    {
-      // 
-      // lo/hi approach pivot, and at the end, 
-      // one of it will become index of pivot 
-      // and will change pivot to correct position
-      //
       while ( vec[lo] < pivot ) lo++;  
       while ( pivot < vec[hi] ) hi--; 
 
       if ( lo<=hi ) {
-         swap(vec[lo++], vec[hi--]);
+          temp = vec[lo]; vec[lo] = vec[hi]; vec[hi] = temp;
+          lo++, hi--;
       }
    }
    return lo;
 }
 void qSort(vector<int>& vec, int lo, int hi) { 
-
    int index = partition(vec, lo, hi);
-
-   if ( debug ) {
-       for( const int a:vec)
-           cout << a << " ";
-       cout << endl;
-       cout << "Idx,lo,hi : " << index << " " << lo << " " << hi << endl << endl;
-   }
   
    // index -1 to comply with index is return by lo+1
    if ( lo < index-1 )
@@ -100,6 +102,13 @@ void qSort(vector<int>& vec, int lo, int hi) {
 
    if ( index < hi ) 
       qSort( vec, index, hi);
+}
+
+bool check_in_order(const vector<int> vec){
+    for( int i=0; i<vec.size(); i++)
+        if(vec[i]<vec[i-1]) 
+            return false;
+    return true;
 }
 
 int main(){
@@ -121,5 +130,21 @@ int main(){
     for( const int a:v3)
         cout << a << " ";
     cout << endl;
+
+    // Random
+    const int NUM = 10000;
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(1, NUM);
+
+    vector<int> ary(NUM,0); 
+    for (int& i:ary) i=dis(gen);
+    qSort(ary,0,ary.size()-1);
+    
+    for (const int i:ary) cout << i << " ";
+    cout << endl;
+
+    cout << "Index of 527: " << bsearch(527,ary) << endl;
+    cout << "In Order: " << (check_in_order?"YES":"NO") << endl;
     return 0;
 }

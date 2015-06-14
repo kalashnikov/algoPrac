@@ -1,0 +1,147 @@
+#include <iostream>
+#include <cstdlib>
+#include <climits>
+
+using namespace std;
+
+class ListNode{
+    public:
+        ListNode():data(0), next(NULL){}
+
+        int data;
+        ListNode *next;
+};
+
+class Queue{
+    public:
+        Queue():front(NULL), rear(NULL) { }
+        ~Queue() { DeleteQueue(); }
+
+        bool IsEmptyQueue(){
+            return (front == NULL);
+        }
+
+        void EnQueue(int data){
+            ListNode *newNode = new ListNode();
+            newNode->data = data;
+            newNode->next = NULL;
+            if(rear) rear->next = newNode;
+            rear = newNode;
+            if(front==NULL) front = rear;
+        }
+
+        int DeQueue(){
+            if(IsEmptyQueue()){ 
+                cout << "Queue is empty" << endl;
+                return 0;
+            } else {
+                ListNode *tmp = front;
+                int data = front->data;
+                front = front->next;
+                //delete tmp; // Strange warning
+                return data;
+            }
+        }
+
+        void DeleteQueue(){
+            ListNode *tmp;
+            while(front){
+                tmp   = front;
+                front = front->next;
+                delete tmp;
+            }
+        }
+
+        int Size(){
+            if (IsEmptyQueue()) return 0;
+            int size = 1;
+            ListNode *tmp = front;
+            while(tmp = tmp->next) size++;
+            return size;
+        }
+
+        void Print(){
+            ListNode *tmp = front;
+            while(tmp) {
+                cout << tmp->data << " ";
+                tmp = tmp->next;
+            } 
+            cout << endl;
+            return ;
+        }
+
+    private:
+        ListNode *front, *rear;
+};
+
+// Stack by Two Queues
+class Stack{
+    public: 
+        Stack():q1(new Queue()), q2(new Queue()) {}
+
+        void Push(int data){
+            if (q1->IsEmptyQueue()) 
+                q2->EnQueue(data);
+            else 
+                q1->EnQueue(data);
+        }
+
+        int Pop(){
+            int i,size;
+            if(q2->IsEmptyQueue()){
+                size = q1->Size();
+                i = 0;
+                while ( i<size-1 ){
+                    q2->EnQueue(q1->DeQueue());
+                    i++;
+                } 
+                return q1->DeQueue();
+            } else { 
+                size = q2->Size();
+                i = 0;
+                while ( i<size-1 ){
+                    q1->EnQueue(q2->DeQueue());
+                    i++;
+                } 
+                return q2->DeQueue();
+            }
+        }
+
+        void Print(){
+            if(q2->IsEmptyQueue()){
+                q1->Print();
+            } else {
+                q2->Print();
+            }
+        }
+
+    private:
+        Queue *q1;
+        Queue *q2;
+};
+
+int main(){
+
+    Queue q;
+    q.EnQueue(5);
+    q.EnQueue(2);
+    q.EnQueue(6);
+    q.EnQueue(8);
+    cout << "Size: " << q.Size() << endl;
+    cout << q.DeQueue() << endl;
+    cout << q.DeQueue() << endl;
+    cout << q.DeQueue() << endl;
+    cout << q.DeQueue() << endl;
+
+    Stack s;
+    s.Push(8);
+    s.Push(6);
+    s.Push(2);
+    s.Push(5);
+    cout << s.Pop() << endl;
+    cout << s.Pop() << endl;
+    cout << s.Pop() << endl;
+    cout << s.Pop() << endl;
+
+    return 0;
+}

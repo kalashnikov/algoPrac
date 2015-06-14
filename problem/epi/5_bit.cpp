@@ -1,8 +1,33 @@
 #include<iostream>
 #include<bitset>
 #include<algorithm>
+#include<random>
+#include<cstring>
 
 using namespace std;
+
+// CCI 17.1 Swap number without temparary variables
+void swap1(int& a, int& b){
+    if ( b > a ) return swap1(b, a);
+    cout << a << " " << b << endl;
+    a = a - b;
+    b = a + b;
+    a = b - a;
+    cout << a << " " << b << endl;
+}
+void swap2(int& a, int& b){ 
+    cout << a << " " << b << endl;
+    a = a ^ b;
+    b = a ^ b;
+    a = b ^ a;
+    cout << a << " " << b << endl;   
+}
+
+unsigned int check_1(unsigned int b){
+    int n;
+    for(n=0; b; n++) b &= b-1;
+    return n;
+}
 
 // 5.1 Parity Check (Brute-force)
 short pp(unsigned long x){
@@ -53,6 +78,7 @@ double powerXY(double x, int y){
     return result;
 }
 
+// 5.8
 string convertBase(const string& s, int b1, int b2) { 
     bool is_negative = s.front() == '-';
     int x = 0;
@@ -75,10 +101,62 @@ string convertBase(const string& s, int b1, int b2) {
     return result;
 }
 
+
+// Random generator for 0/1
+int zero_one_random(){
+    // Random
+    const int NUM = 10000;
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(1, NUM);
+    return (dis(gen)/5000);
+}
+
+// 5.12 Generate random integer between a, b 
+// Based on random generator for 0/1
+int uniform_random(int a, int b){
+    int t = b - a + 1, res;
+    do { 
+        res = 0;
+        for ( int i=0; (1<<i) < t; ++i) {
+            res = (res * 2) | zero_one_random();
+            cout << "res: " << res << endl;
+        }
+    } while ( res >= t);
+    return res + a;
+}
+
+// CCI 17.11 - Implement rand7() by rand5()
+int rand5(){
+    // Random
+    const int NUM = 10000;
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(1, 5);
+}
+int rand7(){
+    while(true){
+        int num = 5 * rand5() + rand5();
+        if ( num < 21 ) {
+            return num % 7;
+        }
+    }
+}
+
 int main(){
     unsigned long in = 232532232632532;
     cout << (bitset<64>) in << endl;
     Parity(in);
-    cout << pp(in) << endl;
+
+    unsigned int s = 2345;
+    cout << (bitset<32>) s << endl;
+    cout << pp(s) << endl;
+    cout << check_1(s) << endl;
+
+    cout << uniform_random(100,999) << endl;
+
+    int a = 23523, b = 94725;
+    swap1(a, b);
+    swap2(b, a);
     return 0;
 }
