@@ -28,45 +28,41 @@
 
 ; ----------------------------------------- ;
 ; Chapter 1.1.7 with improvement
-(define (sqrt-iter guess last x)
-  (if (good-enough? guess last)
-    guess 
-    (sqrt-iter (improve guess x) guess x)))
-
-(define (improve guess x)
-  (average guess (/ x guess)))
-
 (define (average x y)
   (/ (+ x y) 2)) 
 
 (define (good-enough? guess last)
   (< (abs (- guess last) ) (* guess 0.001)) )
 
+; With 1.1.9 "lexical scoping"
 (define (sqr x)
-  (sqrt-iter 1.0 x x))
+  (define (sqrt-iter guess last)
+    (if (good-enough? guess last)
+      guess 
+      (sqrt-iter (improve guess) guess)))
+  (define (improve guess)
+    (average guess (/ x guess)))
 
+  (sqrt-iter 1.0 x))
 
 (printf "Squre-root of 10000000: ~a\n" (sqr 10000000))
 (printf "Squre-root of   0.0003: ~a\n" (sqr 0.0003))
 
 ; ----------------------------------------- ;
 ; Ex-1.8 
-(define (cube-iter guess last x)
-  (if (good-enough? guess last)
-    guess 
-    (cube-iter (cube-improve guess x) guess x)))
-
-(define (cube-improve guess x)
-  (/ (+ (/ x (sq guess)) (* 2 guess)) 3))
-
 (define (cube-root x)
-  (cube-iter 1.0 x x))
+  (define (cube-iter guess last)
+    (if (good-enough? guess last)
+      guess 
+      (cube-iter (cube-improve guess) guess)))
+  (define (cube-improve guess)
+    (/ (+ (/ x (sq guess)) (* 2 guess)) 3))
+  
+  (cube-iter 1.0 x))
 
 (printf " Cube-root of 10000000: ~a\n" (cube-root 10000000))
 (printf " Cube-root of   0.0003: ~a\n" (cube-root 0.0003))
 ; ----------------------------------------- ;
-
-
 
 
 ; ----------------------------------------- ;
