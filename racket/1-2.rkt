@@ -1,5 +1,8 @@
 #lang racket
 
+(define (square x)
+  (* x x))
+
 ; ----------------------------------------- ;
 ; Exercise: Counting change
 ; [Chanllege] Better algorithm
@@ -47,5 +50,46 @@
 (ex1.11_iterative 10)
 
 ; ----------------------------------------- ;
+; Ex.1.12 Pascal's triangle
+(define (ex1.12 n m )
+  (if (or (= n m) (= m 0)) 
+      1
+      (+ (ex1.12 (- n 1) m) 
+         (ex1.12 (- n 1) (- m 1)))))
 
+(ex1.12 4 2)
 
+; ----------------------------------------- ;
+; 1.2.4 Exponentiation 
+(define (fast-expt b n)
+  
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else (* b (fast-expt b (- n 1))))))
+
+(fast-expt 4 10)
+
+; ----------------------------------------- ;
+; 1.2.6 Testing for Primality - The Fermat test 
+(define (fast-prime? n times) 
+  (define (expmod base exp m)
+    (cond ((= exp 0) 1)
+          ((even? exp)
+           (remainder (square (expmod base (/ exp 2) m))
+                      m))
+          (else
+           (remainder (* base (expmod base (- exp 1) m))
+                      m))))
+           
+  (define (fermat-test n)
+    (define (try-it a)
+      (= (expmod a n n) a))
+    (try-it (+ 1 (random (- n 1)))))
+
+  (cond ((= times 0) true)
+        ((fermat-test n) (fast-prime? n (- times 1)))
+        (else false)))
+
+(fast-prime? 90 5)
+
+; ----------------------------------------- ;
