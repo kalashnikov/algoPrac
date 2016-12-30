@@ -62,13 +62,95 @@
 ; ----------------------------------------- ;
 ; 1.2.4 Exponentiation 
 (define (fast-expt b n)
-  
   (cond ((= n 0) 1)
         ((even? n) (square (fast-expt b (/ n 2))))
         (else (* b (fast-expt b (- n 1))))))
 
 (fast-expt 4 10)
+(fast-expt 4 11)
 
+; ----------------------------------------- ;
+; Ex1.16 fast-square
+(define (fast-sq b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-sq b (/ n 2))))
+        (else (* 2 (fast-sq b (- n 1))))))
+
+(fast-sq 2 0)
+(fast-sq 2 1)
+(fast-sq 2 2)
+(fast-sq 2 4)
+(fast-sq 2 10)
+(fast-sq 2 11)
+
+; ----------------------------------------- ;
+; Ex1.17 multiplication using addition, double and halve
+(define (ex1.17 a b)
+  (define (add x y) (+ x y))
+  (define (double x) (+ x x))
+  (define (halve x) (/ x 2))
+  
+  (cond ((= b 0) 0)
+        ((even? b) (double (ex1.17 a (halve b))))
+        (else (add a (ex1.17 a (- b 1))))))
+
+(ex1.17 3 0)
+(ex1.17 3 1)
+(ex1.17 3 2)
+(ex1.17 3 4)
+(ex1.17 3 5)
+(ex1.17 3 6)
+
+; ----------------------------------------- ;
+; Ex1.18 multiplication using addition, double and halve
+(define (ex1.18 a b)
+  (define (add x y) (+ x y))
+  (define (double x) (+ x x))
+  (define (halve x) (/ x 2))
+
+  (define (iter acc a b) 
+    (cond ((= b 0) acc)
+          ((even? b) (iter acc (double a) (halve b)))
+          (else (iter (add acc a) a (- b 1)))))
+  (iter 0 a b))
+
+(ex1.18 3 0)
+(ex1.18 3 1)
+(ex1.18 3 2)
+(ex1.18 3 4)
+(ex1.18 3 5)
+(ex1.18 3 6)
+
+; ----------------------------------------- ;
+; Ex1.19 Fibonacci numbers in a logarithmic 
+(define (fib n)
+  (define (fib-iter a b p q count)
+    (cond ((= count 0) b)
+          ((even? count)
+           (fib-iter a 
+                     b
+                     (+ (square p) (square q)) ; p' 
+                     (+ (* 2 p q) (square q))  ; q' 
+                     (/ count 2)))
+          (else (fib-iter (+ (* b q) (* a q) (* a p))
+                          (+ (* b p) (* a q))
+                          p 
+                          q
+                          (- count 1)))))
+
+  (fib-iter 1 0 0 1 n))
+
+(fib 0)
+(fib 1)
+(fib 2)
+(fib 3)
+(fib 4)
+(fib 5)
+(fib 6)
+(fib 7)
+(fib 8)
+(fib 9)
+(fib 10)
 ; ----------------------------------------- ;
 ; 1.2.6 Testing for Primality - The Fermat test 
 (define (fast-prime? n times) 
