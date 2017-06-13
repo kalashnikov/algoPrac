@@ -1,0 +1,11 @@
+import requests
+from bs4 import BeautifulSoup
+
+#page = requests.get("http://webpac.tphcc.gov.tw/toread/opac/bibliographic_view?classification_type=all&id=713201&language=all&level=all&limit=20&material_type=all&mps=20&offset=local%3A0&source=local&view=CONTENT&wi=false")
+page = requests.get("http://webpac.tphcc.gov.tw/toread/opac/bibliographic_view?classification_type=all&id=412305&language=all&level=all&limit=20&material_type=all&mps=20&offset=local%3A0&source=local&view=CONTENT&wi=false")
+soup = BeautifulSoup(page.content, 'html.parser')
+
+for s in soup.find_all('tr', class_='gridTr'):
+    l = [ss for ss in s.strings]
+    if "在架" in l[7] and l[8].strip() == "0":
+        print(l[2].strip(), l[7].strip(), l[8].strip())
