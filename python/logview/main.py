@@ -1,8 +1,8 @@
 import re
+import glob 
 import pandas as pd
 import numpy as np
 
-# Bokeh library 
 from bokeh.plotting import figure
 from bokeh.layouts import layout, widgetbox
 from bokeh.models import ColumnDataSource, HoverTool, BoxZoomTool, ResetTool
@@ -10,6 +10,7 @@ from bokeh.models.widgets import Slider, Select, TextInput
 from bokeh.io import curdoc
 
 
+#############  Class for operations  ############ 
 class Ops:
     # match op1 to create object for each calibre operations
     def __init__(self):
@@ -138,7 +139,7 @@ class Ops:
             self.hgc, self.fgc, self.hec, self.fec, self.igc, self.vhc, self.vpc,
             self.cpu_time, self.real_time, self.scale_factor, self.lvheap, self.shared, self.elapsed_time)
 
-
+#############  Function to parse log  ############ 
 def parse_log(input_file, all_ops):
     sub_ops  = []
     last_ops = []
@@ -222,27 +223,40 @@ def parse_log(input_file, all_ops):
     all_ops.sort(key=lambda x: x.real_time)
 
 
-# Start data processing 
-all_ops = []
-parse_log("run_latest.log", all_ops)
-operations = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
+#############  Parse log and prepare DataFrame  ############ 
+def prepare_operations(file_name):
+    all_ops = []
+    parse_log(file_name, all_ops)
+    operations = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
+    
+    # Highlight low scale factor
+    operations["color"] = np.where(operations["scale_factor"] < 2, "gold", "grey")
+    operations["color"] = np.where(operations["scale_factor"] > 6, "greenyellow", operations["color"])
+    operations["alpha"] = np.where(operations["scale_factor"] < 2, 0.9, 0.25)
+    return operations
 
-# Highlight low scale factor
-operations["color"] = np.where(operations["scale_factor"] < 2, "gold", "grey")
-operations["color"] = np.where(operations["scale_factor"] > 6, "greenyellow", operations["color"])
-operations["alpha"] = np.where(operations["scale_factor"] < 2, 0.9, 0.25)
 
-# Start Bokeh Configuration
+########################################################################## 
+############################ Bokeh Server App ############################
+########################################################################## 
+
+
+#############  Start data processing  ############ 
+current_file = "run_latest.log"
+operations = prepare_operations(current_file)
+
+
+#############  Start Bokeh Configuration  ############ 
 axis_map = {
     "CPU time": "cpu_time",
     "Real time": "real_time",
     "LVHEAP used": "lvheap_used",
     "LVHEAP allocated": "lvheap_allocated",
-    "Scale Factor": "scale_factor",
-    "Shared used": "shared_used",
+    "Scale factor": "scale_factor",
+    "Shared memory used": "shared_used",
 }
 
-# Create Input controls
+########### Create Input controls ##########
 cpu_time = Slider(title="CPU Time", value=0, start=0,
         end=operations.cpu_time.max(), step=10)
 real_time = Slider(title="Real time", value=0, start=0,
@@ -250,25 +264,28 @@ real_time = Slider(title="Real time", value=0, start=0,
 
 lvheap_used = Slider(title="Used LVHEAP", value=0, start=0,
         end=operations.lvheap_used.max(), step=100)
-lvheap_allocated = Slider(title="Allocated LVHEAP", value=0, start=0,
-        end=operations.lvheap_allocated.max(), step=100)
 
 scale_factor = Slider(title="Scale factor", value=0, start=0,
         end=operations.scale_factor.max(), step=1)
 
-shared_used = Slider(title="Shared heap used", value=0, start=0,
+shared_used = Slider(title="Shared memory used", value=0, start=0,
         end=operations.shared_used.max(), step=1)
 
 sub_type = Select(title="SubType", value="All",
         options= ['ALL'] + list(operations.sub_type.unique()))
-sub_type_name = TextInput(title="SubType")
 
+file_list = Select(title="File List", value=current_file,
+        options=[f for f in glob.iglob('**/*.log', recursive=True) if f.endswith('.log')])
+
+# Filter by Operation name and SubType 
+sub_type_name = TextInput(title="SubType")
 op_name = TextInput(title="Operation name")
 
 x_axis = Select(title="X Axis", options=sorted(axis_map.keys()), value="Real time")
 y_axis = Select(title="Y Axis", options=sorted(axis_map.keys()), value="LVHEAP used")
 
-# Create Column Data Source that will be used by the plot
+
+############ Create Column Data Source that will be used by the plot ############  
 source = ColumnDataSource(data=dict(x=[], y=[], name=[], color=[],
     alpha=[], sub_type=[], cpu_time=[], real_time=[], scale_factor=[],
     lvheap_used=[], lvheap_allocated=[], shared_used=[],
@@ -288,17 +305,28 @@ hover = HoverTool(tooltips=[
 p = figure(plot_height=900, plot_width=900, title="", toolbar_location=None,
         tools=[hover, BoxZoomTool(), ResetTool()])
 p.left[0].formatter.use_scientific = False
-p.circle(x="x", y="y", source=source, size=7, color="color", line_color=None, fill_alpha="alpha")
+p.circle(x="x", y="y", source=source, size=10, color="color", line_color=None, fill_alpha="alpha")
 
+
+#############  Control callback function ############ 
 def select_operations():
+    global operations
+    global current_file
+    
     sub_type_val = sub_type.value
     sub_type_name_val = sub_type_name.value
     op_name_val = op_name.value.strip()
+    file_name = file_list.value.strip()
+
+    # Parse log and replace data
+    if (file_name != current_file):
+        operations = prepare_operations(file_name)
+        current_file = file_name
+    
     selected = operations[
         (operations.cpu_time >= cpu_time.value) &
         (operations.real_time >= real_time.value) &
         (operations.lvheap_used >= lvheap_used.value) &
-        (operations.lvheap_allocated >= lvheap_allocated.value) &
         (operations.scale_factor >= scale_factor.value) &
         (operations.shared_used >= shared_used.value)
     ]
@@ -338,10 +366,14 @@ def update():
         hgc=df['hgc'],
     )
 
-controls = [cpu_time, real_time, lvheap_used, lvheap_allocated, scale_factor, shared_used, sub_type, sub_type_name, op_name, x_axis, y_axis]
+
+#############  Control panel configuration  ############ 
+controls = [file_list, cpu_time, real_time, lvheap_used, scale_factor, shared_used, sub_type, sub_type_name, op_name, x_axis, y_axis]
 for control in controls:
     control.on_change('value', lambda attr, old, new: update())
 
+
+#############  Layout and finalization ############ 
 # sizing_mode = 'fixed'  # 'scale_width' also looks nice with this example
 sizing_mode = 'scale_width'
 
