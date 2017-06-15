@@ -1,6 +1,14 @@
 import re
-import sys
 import pandas as pd
+import numpy as np
+
+# Bokeh library 
+from bokeh.plotting import figure
+from bokeh.layouts import layout, widgetbox
+from bokeh.models import ColumnDataSource, HoverTool, BoxZoomTool, ResetTool
+from bokeh.models.widgets import Slider, Select, TextInput
+from bokeh.io import curdoc
+
 
 class Ops:
     # match op1 to create object for each calibre operations
@@ -114,11 +122,9 @@ class Ops:
             'cpu_time': self.cpu_time,
             'real_time': self.real_time,
             'scale_factor': self.scale_factor,
-            # 'lvheap': self.lvheap, 
             'lvheap_used': int(self.lvheap_used),
             'lvheap_allocated': int(self.lvheap_allocated),
             'lvheap_max': int(self.lvheap_max),
-            # 'shared': self.shared,
             'shared_used': int(self.shared_used),
             'shared_allocated': int(self.shared_allocated),
             'elapsed_time': self.elapsed_time,
@@ -182,7 +188,7 @@ def parse_log(input_file, all_ops):
                 op.init_op1(*result1.groups())
                 last_ops.append(op)
 
-                if len(sub_ops)!=0:
+                if len(sub_ops) != 0:
                     for so in sub_ops:
                        so.add_main_op(*result1.groups())
                        all_ops.append(so)
@@ -198,7 +204,7 @@ def parse_log(input_file, all_ops):
                 result3 = op3.match(l)
 
                 if result2:     # Operation statistic 
-                    if int(result2.group(2))!=0:
+                    if int(result2.group(2)) != 0:
                         for ops in last_ops:
                             ops.add_op2(*result2.groups())
                             all_ops.append(ops)
@@ -206,7 +212,7 @@ def parse_log(input_file, all_ops):
                     last_ops.clear()
 
                 elif result3:   # Operation statistic 
-                    if int(result3.group(2))!=0:
+                    if int(result3.group(2)) != 0:
                         for ops in last_ops:
                             ops.add_op3(*result3.groups())
                             all_ops.append(ops)
@@ -215,21 +221,137 @@ def parse_log(input_file, all_ops):
 
     all_ops.sort(key=lambda x: x.real_time)
 
-if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        print("Please provide input file.")
-        exit()
 
-    input_file = sys.argv[1]
+# Start data processing 
+all_ops = []
+parse_log("run_latest.log", all_ops)
+operations = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
 
-    all_ops = []
-    parse_log(input_file, all_ops)
+# Highlight low scale factor
+operations["color"] = np.where(operations["scale_factor"] < 2, "gold", "grey")
+operations["color"] = np.where(operations["scale_factor"] > 6, "greenyellow", operations["color"])
+operations["alpha"] = np.where(operations["scale_factor"] < 2, 0.9, 0.25)
 
-    # print("######### Print Operations #########")
-    # for ops in all_ops:
-    #     print(ops)
+# Start Bokeh Configuration
+axis_map = {
+    "CPU time": "cpu_time",
+    "Real time": "real_time",
+    "LVHEAP used": "lvheap_used",
+    "LVHEAP allocated": "lvheap_allocated",
+    "Scale Factor": "scale_factor",
+    "Shared used": "shared_used",
+}
 
-    # https://stackoverflow.com/questions/34997174/how-to-convert-list-of-model-objects-to-pandas-dataframe
-    df = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
+# Create Input controls
+cpu_time = Slider(title="CPU Time", value=0, start=0,
+        end=operations.cpu_time.max(), step=10)
+real_time = Slider(title="Real time", value=0, start=0,
+        end=operations.real_time.max(), step=10)
 
-    df.to_csv('{}.csv'.format(input_file))
+lvheap_used = Slider(title="Used LVHEAP", value=0, start=0,
+        end=operations.lvheap_used.max(), step=100)
+lvheap_allocated = Slider(title="Allocated LVHEAP", value=0, start=0,
+        end=operations.lvheap_allocated.max(), step=100)
+
+scale_factor = Slider(title="Scale factor", value=0, start=0,
+        end=operations.scale_factor.max(), step=1)
+
+shared_used = Slider(title="Shared heap used", value=0, start=0,
+        end=operations.shared_used.max(), step=1)
+
+sub_type = Select(title="SubType", value="All",
+        options= ['ALL'] + list(operations.sub_type.unique()))
+sub_type_name = TextInput(title="SubType")
+
+op_name = TextInput(title="Operation name")
+
+x_axis = Select(title="X Axis", options=sorted(axis_map.keys()), value="Real time")
+y_axis = Select(title="Y Axis", options=sorted(axis_map.keys()), value="LVHEAP used")
+
+# Create Column Data Source that will be used by the plot
+source = ColumnDataSource(data=dict(x=[], y=[], name=[], color=[],
+    alpha=[], sub_type=[], cpu_time=[], real_time=[], scale_factor=[],
+    lvheap_used=[], lvheap_allocated=[], shared_used=[],
+    fec=[], fgc=[], hec=[], hgc=[]))
+
+hover = HoverTool(tooltips=[
+    ("Operation Name", "@name"),
+    ("SubType", "@sub_type"),
+    ("CPU time / Real time", "@cpu_time / @real_time"),
+    ("Scale factor", "@scale_factor"),
+    ("LVHEAP: used, allocated", "@lvheap_used, @lvheap_allocated"),
+    ("Shared memory used", "@shared_used"),
+    ("FLAT: #edge, #geometry", "@fec, @fgc"),
+    ("HIER: #edge, #geometry", "@hec, @hgc")
+])
+
+p = figure(plot_height=900, plot_width=900, title="", toolbar_location=None,
+        tools=[hover, BoxZoomTool(), ResetTool()])
+p.left[0].formatter.use_scientific = False
+p.circle(x="x", y="y", source=source, size=7, color="color", line_color=None, fill_alpha="alpha")
+
+def select_operations():
+    sub_type_val = sub_type.value
+    sub_type_name_val = sub_type_name.value
+    op_name_val = op_name.value.strip()
+    selected = operations[
+        (operations.cpu_time >= cpu_time.value) &
+        (operations.real_time >= real_time.value) &
+        (operations.lvheap_used >= lvheap_used.value) &
+        (operations.lvheap_allocated >= lvheap_allocated.value) &
+        (operations.scale_factor >= scale_factor.value) &
+        (operations.shared_used >= shared_used.value)
+    ]
+    if (sub_type_val != "All"):
+        selected = selected[selected.sub_type.str.contains(sub_type_val) == True]
+    if (op_name_val != ""):
+        selected = selected[selected.name.str.lower().str.contains(op_name_val.lower()) == True]
+    if (sub_type_name_val != ""):
+        selected = selected[selected.sub_type.str.lower().str.contains(sub_type_name_val.lower()) == True]
+    return selected
+
+
+def update():
+    df = select_operations()
+    x_name = axis_map[x_axis.value]
+    y_name = axis_map[y_axis.value]
+
+    p.xaxis.axis_label = x_axis.value
+    p.yaxis.axis_label = y_axis.value
+    p.title.text = "%d operations selected" % len(df)
+    source.data = dict(
+        x=df[x_name],
+        y=df[y_name],
+        name=df['name'],
+        sub_type=df['sub_type'],
+        color=df['color'],
+        alpha=df['alpha'],
+        cpu_time=df['cpu_time'],
+        real_time=df['real_time'],
+        scale_factor=df['scale_factor'],
+        lvheap_used=df['lvheap_used'],
+        lvheap_allocated=df['lvheap_allocated'],
+        shared_used=df['shared_used'],
+        fec=df['fec'],
+        fgc=df['fgc'],
+        hec=df['hec'],
+        hgc=df['hgc'],
+    )
+
+controls = [cpu_time, real_time, lvheap_used, lvheap_allocated, scale_factor, shared_used, sub_type, sub_type_name, op_name, x_axis, y_axis]
+for control in controls:
+    control.on_change('value', lambda attr, old, new: update())
+
+# sizing_mode = 'fixed'  # 'scale_width' also looks nice with this example
+sizing_mode = 'scale_width'
+
+inputs = widgetbox(*controls, sizing_mode=sizing_mode)
+l = layout([
+    [inputs, p]
+], sizing_mode=sizing_mode)
+
+update()  # initial load of the data
+
+curdoc().add_root(l)
+curdoc().title = "Calibre transcript analystic"
+
