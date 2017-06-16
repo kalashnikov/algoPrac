@@ -228,10 +228,15 @@ def prepare_operations(file_name):
     all_ops = []
     parse_log(file_name, all_ops)
     operations = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
-    
+
+    # Calculate runtime ratio
+    max_time = operations.elapsed_time.max()
+    operations["runtime_ratio"] = operations["real_time"] / max_time * 100
+
     # Highlight low scale factor
     operations["color"] = np.where(operations["scale_factor"] < 2, "gold", "grey")
     operations["color"] = np.where(operations["scale_factor"] > 6, "greenyellow", operations["color"])
+    operations["color"] = np.where(operations["runtime_ratio"] > 50, "red", operations["color"])
     operations["alpha"] = np.where(operations["scale_factor"] < 2, 0.9, 0.25)
     return operations
 
@@ -287,15 +292,14 @@ y_axis = Select(title="Y Axis", options=sorted(axis_map.keys()), value="LVHEAP u
 
 ############ Create Column Data Source that will be used by the plot ############  
 source = ColumnDataSource(data=dict(x=[], y=[], name=[], color=[],
-    alpha=[], sub_type=[], cpu_time=[], real_time=[], scale_factor=[],
-    lvheap_used=[], lvheap_allocated=[], shared_used=[],
+    alpha=[], sub_type=[], cpu_time=[], real_time=[], runtime_ratio=[],
+    scale_factor=[], lvheap_used=[], lvheap_allocated=[], shared_used=[],
     fec=[], fgc=[], hec=[], hgc=[]))
 
 hover = HoverTool(tooltips=[
-    ("Operation Name", "@name"),
-    ("SubType", "@sub_type"),
+    ("Operation Name (SubType)", "@name (@sub_type)"),
     ("CPU time / Real time", "@cpu_time / @real_time"),
-    ("Scale factor", "@scale_factor"),
+    ("Scale factor / Runtime Ratio", "@scale_factor / @runtime_ratio%"),
     ("LVHEAP: used, allocated", "@lvheap_used, @lvheap_allocated"),
     ("Shared memory used", "@shared_used"),
     ("FLAT: #edge, #geometry", "@fec, @fgc"),
@@ -312,7 +316,7 @@ p.circle(x="x", y="y", source=source, size=10, color="color", line_color=None, f
 def select_operations():
     global operations
     global current_file
-    
+
     sub_type_val = sub_type.value
     sub_type_name_val = sub_type_name.value
     op_name_val = op_name.value.strip()
@@ -322,7 +326,7 @@ def select_operations():
     if (file_name != current_file):
         operations = prepare_operations(file_name)
         current_file = file_name
-    
+
     selected = operations[
         (operations.cpu_time >= cpu_time.value) &
         (operations.real_time >= real_time.value) &
@@ -356,6 +360,7 @@ def update():
         alpha=df['alpha'],
         cpu_time=df['cpu_time'],
         real_time=df['real_time'],
+        runtime_ratio=df['runtime_ratio'],
         scale_factor=df['scale_factor'],
         lvheap_used=df['lvheap_used'],
         lvheap_allocated=df['lvheap_allocated'],
