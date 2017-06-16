@@ -7,6 +7,7 @@ class Ops:
     def __init__(self):
         self.name = ""
         self.sub_type = "FullOp"
+        self.op_type = ""
         self.optype = ""
         self.typ = ""
         self.cfg = 0
@@ -102,6 +103,7 @@ class Ops:
         return {
             'name': self.name,
             'optype': self.optype,
+            'op_group': self.op_group,
             'cfg': self.cfg,
             'typ': self.typ,
             'hgc': self.hgc,
@@ -150,7 +152,7 @@ def parse_log(input_file, all_ops):
     sub_op1 = re.compile('WARNING:\s+CPU TIME = (\d+)  REAL TIME = (\d+), LVHEAP = (\S+)  SHARED = (\S+) - (\S+)')
 
     # CPU TIME = 14  REAL TIME = 8 - PUSH_OUT
-    sub_op2 = re.compile('WARNING:\s+CPU TIME = (\d+)  REAL TIME = (\d+).?\s? - (\S+)')
+    sub_op2 = re.compile('CPU TIME = (\d+)  REAL TIME = (\d+).?\s? - (\S+)')
 
     with open(input_file, "r") as f:
         for line in f:
@@ -165,14 +167,14 @@ def parse_log(input_file, all_ops):
                     op = Ops()
                     op.init_sub_op1(*sub_op1_result.groups())
                     sub_ops.append(op)
+                    continue
 
                 sub_op2_result = sub_op2.match(l)
                 if sub_op2_result:
                     op = Ops()
                     op.init_sub_op2(*sub_op2_result.groups())
                     sub_ops.append(op)
-
-                continue
+                    continue
 
             result1 = op1.match(l)
 
@@ -180,11 +182,13 @@ def parse_log(input_file, all_ops):
             if result1:
                 op = Ops()
                 op.init_op1(*result1.groups())
+                op.op_group = last_ops[0].name if len(last_ops)!=0 else op.name
                 last_ops.append(op)
 
                 if len(sub_ops)!=0:
                     for so in sub_ops:
                        so.add_main_op(*result1.groups())
+                       so.op_group = op.name
                        all_ops.append(so)
 
                     sub_ops.clear()
