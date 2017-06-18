@@ -6,7 +6,7 @@ import numpy as np
 from bokeh.plotting import figure
 from bokeh.layouts import layout, widgetbox, row, column
 from bokeh.models import ColumnDataSource, HoverTool, BoxZoomTool, ResetTool, Div
-from bokeh.models.widgets import Slider, Select, TextInput
+from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn#, DateFormatter
 from bokeh.io import curdoc
 
 from plotly.offline import download_plotlyjs, offline 
@@ -35,7 +35,7 @@ class Ops:
         self.lvheap = ""
         self.shared = ""
         self.elapsed_time = 0
-        self.scale_factor = 0.0
+        # self.scale_factor = 0.0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = 0, 0, 0
         self.shared_used, self.shared_allocated = 0, 0
 
@@ -60,7 +60,7 @@ class Ops:
         self.elapsed_time = 0
 
         # calculated number
-        self.scale_factor = 0.0
+        # self.scale_factor = 0.0
 
     # For sub_op1
     def init_sub_op1(self, cpu_time, real_time, lvheap, shared, name):
@@ -69,7 +69,7 @@ class Ops:
         self.real_time = float(real_time)
         self.lvheap = lvheap
         self.shared = shared
-        self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
+        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = self.lvheap.split('/')
         self.shared_used, self.shared_allocated = self.shared.split('/')
 
@@ -78,7 +78,7 @@ class Ops:
         self.sub_typ = name
         self.cpu_time = float(cpu_time)
         self.real_time = float(real_time)
-        self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
+        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
 
     def add_main_op(self, name, optype, cfg, typ, hgc, fgc, hec, fec, igc, vhc, vpc):
         self.name = name + " - " + self.sub_type
@@ -98,7 +98,7 @@ class Ops:
         self.real_time = float(real_time)
         self.lvheap = lvheap
         self.elapsed_time = float(elapsed_time)
-        self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
+        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = self.lvheap.split('/')
 
     def add_op3(self, cpu_time, real_time, lvheap, shared, elapsed_time):
@@ -107,7 +107,7 @@ class Ops:
         self.lvheap = lvheap
         self.shared = shared
         self.elapsed_time = float(elapsed_time)
-        self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
+        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = self.lvheap.split('/')
         self.shared_used, self.shared_allocated = self.shared.split('/')
 
@@ -127,7 +127,7 @@ class Ops:
             'vpc': self.vpc,
             'cpu_time': self.cpu_time,
             'real_time': self.real_time,
-            'scale_factor': self.scale_factor,
+            # 'scale_factor': self.scale_factor,
             'lvheap_used': int(self.lvheap_used),
             'lvheap_allocated': int(self.lvheap_allocated),
             'lvheap_max': int(self.lvheap_max),
@@ -142,7 +142,7 @@ class Ops:
                 | CPU TIME: {}, REAL TIME: {}, Scale: {:.2f}, LVHEAP: {}, SHARED: {}, ELAPSED TIME: {}'.format(
             self.name, self.optype, self.cfg, self.typ, self.sub_type,
             self.hgc, self.fgc, self.hec, self.fec, self.igc, self.vhc, self.vpc,
-            self.cpu_time, self.real_time, self.scale_factor, self.lvheap, self.shared, self.elapsed_time)
+            self.cpu_time, self.real_time, 0, self.lvheap, self.shared, self.elapsed_time)
 
 
 def parse_log(input_file, all_ops):
@@ -232,7 +232,7 @@ def parse_log(input_file, all_ops):
 
                     last_ops.clear()
 
-    all_ops.sort(key=lambda x: x.real_time)
+    # all_ops.sort(key=lambda x: x.real_time)
 
 def prepare_operations(file_name):
     '''
@@ -245,7 +245,10 @@ def prepare_operations(file_name):
 
     # Calculate runtime ratio
     max_time = operations.elapsed_time.max()
-    operations["runtime_ratio"] = operations["real_time"] / max_time * 100
+    operations["runtime_ratio"] = 100 * operations["real_time"] / max_time
+   
+    # Calculate scale_factor
+    operations["scale_factor"] = np.where(operations["real_time"]!=0, operations["cpu_time"] / operations["real_time"], 0)
 
     # Highlight low scale factor
     operations["color"] = np.where(operations["scale_factor"] < 2, "gold", "grey")
@@ -254,24 +257,28 @@ def prepare_operations(file_name):
     operations["alpha"] = np.where(operations["scale_factor"] < 2, 0.9, 0.25)
     return operations
 
-def gen_plot_page(df):
+def gen_plot_page(df, chart_width):
     '''
     Generate Pareto chart using Plotly 
     '''
 
     # Uniquify by real_time and op_group page 
-    df = df[df.sub_type=='FullOp']
-    df = df[['real_time','op_group']]
+    df = df.loc[df.sub_type=='FullOp', ['real_time','op_group']]
+    # df = df[['real_time','op_group']]
     df = df.drop_duplicates()
     df = df.sort_values(by="real_time",ascending=False)
 
     # Prepare addition columns for Pareto Chart 
+    max_time = operations.elapsed_time.max()
     df['cumulative_sum'] = df.real_time.cumsum()
-    df['cumulative_perc'] = 100*df.cumulative_sum/df.real_time.sum()
+    df['cumulative_perc'] = 100 * df.cumulative_sum/ max_time
     df['demarcation'] = 80
 
     # Filter out until 80% 
-    df = df.query('cumulative_perc < 90')
+    # df = df.query('cumulative_perc < 200')
+   
+    # Show first 20 rows 
+    df = df.head(20)
 
     # Prepare plotly data
     trace1 = Bar(
@@ -316,7 +323,7 @@ def gen_plot_page(df):
             family='Balto, sans-serif',
             size=12
         ),
-        width=1150,
+        width=chart_width,
         height=623,
         paper_bgcolor='rgb(240, 240, 240)',
         plot_bgcolor='rgb(240, 240, 240)',
@@ -349,9 +356,8 @@ def gen_plot_page(df):
           autotick=True
         ),
         yaxis=dict(
-            title='Real Time',
-            autorange=True,
-            range=[0,30300],
+          title='Real Time',
+          autorange=True,
           tickfont=dict(
                 color='rgba(34,163,192,.75)'
             ),
@@ -362,11 +368,12 @@ def gen_plot_page(df):
               color='rgba(34,163,192,.75)')
         ),
         yaxis2=dict(
-            range=[0,101],
+            autorange=True,
+            autotick=True,
             tickfont=dict(
                 color='rgba(243,158,115,.9)'
             ),
-            tickvals = [0,20,40,60,80,100],
+            # tickvals = [0,20,40,60,80,100],
             overlaying='y',
             side='right'
         )
@@ -376,6 +383,36 @@ def gen_plot_page(df):
     
     # Gen plotly page 
     offline.plot(fig, auto_open=False, filename="pareto_chart.html")
+
+
+def gen_data_table(df, chart_width):
+    '''
+    Generate data into DataTable format  
+    '''
+    
+    # Uniquify by real_time and op_group page 
+    df = df.loc[df.sub_type=='FullOp', ['op_group', 'sub_type', 'cpu_time', 'real_time', 'runtime_ratio', 'scale_factor',
+        'lvheap_used', 'lvheap_allocated', 'shared_used']]
+    df = df.drop_duplicates()
+    
+    df = df.sort_values(by="real_time", ascending=False)
+    data = dict(df[['op_group', 'sub_type', 'cpu_time', 'real_time', 'runtime_ratio', 'scale_factor',
+        'lvheap_used', 'lvheap_allocated', 'shared_used']])#, 'fec', 'fgc', 'hec', 'hgc']])
+    source = ColumnDataSource(data)
+
+    columns = [
+            TableColumn(field='op_group', title='Name'),
+            TableColumn(field='sub_type', title='Sub-Op Type'),
+            TableColumn(field='cpu_time', title='CPU time'),
+            TableColumn(field='real_time', title='Real time'),
+            TableColumn(field='runtime_ratio', title='Runtime ratio'),
+            TableColumn(field='scale_factor', title='Scale factor'),
+            TableColumn(field='lvheap_used', title='LVHEAP used'),
+            TableColumn(field='lvheap_allocated', title='LVHEAP allocated'),
+            TableColumn(field='shared_used', title='Shared used'),
+    ]
+    
+    return DataTable(source=source, columns=columns, width=chart_width)
 
 
 ########################################################################## 
@@ -443,25 +480,12 @@ hover = HoverTool(tooltips=[
     ("HIER: #edge, #geometry", "@hec, @hgc")
 ])
 
-# Layout General Setting 
-chart_width = 1000
-widget_width = 300
-
-# Gen Pareto chart
-gen_plot_page(operations)
-pareto_chart = Div(text=open("pareto_chart.html").read(), width=chart_width)
-
-p = figure(plot_height=600, plot_width=(chart_width-100), title="", toolbar_location=None,
-        tools=[hover, BoxZoomTool(), ResetTool()])
-p.left[0].formatter.use_scientific = False
-p.circle(x="x", y="y", source=source, size=10, color="color", line_color=None, fill_alpha="alpha")
-
 
 #############  Control callback function ############ 
 def select_operations():
     global operations
     global current_file
-    global pareto_chart 
+    global chart_width 
 
     sub_type_val = sub_type.value
     sub_type_name_val = sub_type_name.value
@@ -473,9 +497,12 @@ def select_operations():
         operations = prepare_operations(file_name)
         current_file = file_name
        
-        # Gen Pareto chart
-        gen_plot_page(operations)
+        # Gen and reload Pareto chart
+        gen_plot_page(operations, chart_width)
         l.children[1] = Div(text=open("pareto_chart.html").read(), width=chart_width)
+
+        # Reload Datatable 
+        l.children[2]= widgetbox(gen_data_table(operations, chart_width))
 
     selected = operations[
         (operations.cpu_time >= cpu_time.value) &
@@ -521,22 +548,37 @@ def update():
         hgc=df['hgc'],
     )
 
+#############  Layout and finalization ############ 
 
-#############  Control panel configuration  ############ 
+# Layout General Setting 
+chart_width = 1150
+widget_width = 300
+sizing_mode = 'fixed'  # 'scale_width' also looks nice with this example
+
+# Control panel configuration 
 controls = [file_list, cpu_time, real_time, lvheap_used, scale_factor, shared_used, sub_type, sub_type_name, op_name, x_axis, y_axis]
 for control in controls:
     control.on_change('value', lambda attr, old, new: update())
-
-
-#############  Layout and finalization ############ 
-sizing_mode = 'fixed'  # 'scale_width' also looks nice with this example
-# sizing_mode = 'scale_width'
-
-# inputs = widgetbox(*controls, sizing_mode=sizing_mode)
 inputs = widgetbox(*controls, width=widget_width)
+
+# Gen Pareto chart
+gen_plot_page(operations, chart_width) # It will generate "pareto_chart.html"
+pareto_chart = Div(text=open("pareto_chart.html").read(), width=chart_width) # Load into Div
+
+# 2D analystic figure  
+p = figure(plot_height=600, plot_width=(chart_width-widget_width), title="", toolbar_location=None, #selectable=True,
+        tools=[hover, BoxZoomTool(), ResetTool()])
+p.left[0].formatter.use_scientific = False
+p.circle(x="x", y="y", source=source, size=10, color="color", line_color=None, fill_alpha="alpha")
+
+# Data Table
+table = widgetbox(gen_data_table(operations, chart_width))
+
+# Finalize Layout setting
 l = layout([
     [inputs, p],
     [pareto_chart],
+    [table],
 ], sizing_mode=sizing_mode)
 
 update()  # initial load of the data
