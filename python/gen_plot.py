@@ -1,25 +1,17 @@
 import re
-import glob 
+import sys
 import pandas as pd
-import numpy as np
-
-from bokeh.plotting import figure
-from bokeh.layouts import layout, widgetbox, row, column
-from bokeh.models import ColumnDataSource, HoverTool, BoxZoomTool, ResetTool, Div
-from bokeh.models.widgets import Slider, Select, TextInput
-from bokeh.io import curdoc
 
 from plotly.offline import download_plotlyjs, offline 
 from plotly.graph_objs import *
 import plotly
 
-#############  Class for operations  ############ 
 class Ops:
     # match op1 to create object for each calibre operations
     def __init__(self):
         self.name = ""
         self.sub_type = "FullOp"
-        self.op_group = ""
+        self.op_type = ""
         self.optype = ""
         self.typ = ""
         self.cfg = 0
@@ -128,9 +120,11 @@ class Ops:
             'cpu_time': self.cpu_time,
             'real_time': self.real_time,
             'scale_factor': self.scale_factor,
+            # 'lvheap': self.lvheap, 
             'lvheap_used': int(self.lvheap_used),
             'lvheap_allocated': int(self.lvheap_allocated),
             'lvheap_max': int(self.lvheap_max),
+            # 'shared': self.shared,
             'shared_used': int(self.shared_used),
             'shared_allocated': int(self.shared_allocated),
             'elapsed_time': self.elapsed_time,
@@ -146,10 +140,6 @@ class Ops:
 
 
 def parse_log(input_file, all_ops):
-    '''
-    Parse Calibre log 
-    '''
-    
     sub_ops  = []
     last_ops = []
 
@@ -167,7 +157,6 @@ def parse_log(input_file, all_ops):
 
     # CPU TIME = 14  REAL TIME = 8 - PUSH_OUT
     sub_op2 = re.compile('CPU TIME = (\d+)  REAL TIME = (\d+).?\s? - (\S+)')
-    # sub_op2 = re.compile('WARNING:\s+CPU TIME = (\d+)  REAL TIME = (\d+).?\s? - (\S+)')
 
     with open(input_file, "r") as f:
         for line in f:
@@ -182,14 +171,14 @@ def parse_log(input_file, all_ops):
                     op = Ops()
                     op.init_sub_op1(*sub_op1_result.groups())
                     sub_ops.append(op)
+                    continue
 
                 sub_op2_result = sub_op2.match(l)
                 if sub_op2_result:
                     op = Ops()
                     op.init_sub_op2(*sub_op2_result.groups())
                     sub_ops.append(op)
-
-                continue
+                    continue
 
             result1 = op1.match(l)
 
@@ -200,7 +189,7 @@ def parse_log(input_file, all_ops):
                 op.op_group = last_ops[0].name if len(last_ops)!=0 else op.name
                 last_ops.append(op)
 
-                if len(sub_ops) != 0:
+                if len(sub_ops)!=0:
                     for so in sub_ops:
                        so.add_main_op(*result1.groups())
                        so.op_group = op.name
@@ -217,7 +206,7 @@ def parse_log(input_file, all_ops):
                 result3 = op3.match(l)
 
                 if result2:     # Operation statistic 
-                    if int(result2.group(2)) != 0:
+                    if int(result2.group(2))!=0:
                         for ops in last_ops:
                             ops.add_op2(*result2.groups())
                             all_ops.append(ops)
@@ -225,7 +214,7 @@ def parse_log(input_file, all_ops):
                     last_ops.clear()
 
                 elif result3:   # Operation statistic 
-                    if int(result3.group(2)) != 0:
+                    if int(result3.group(2))!=0:
                         for ops in last_ops:
                             ops.add_op3(*result3.groups())
                             all_ops.append(ops)
@@ -234,30 +223,7 @@ def parse_log(input_file, all_ops):
 
     all_ops.sort(key=lambda x: x.real_time)
 
-def prepare_operations(file_name):
-    '''
-    Parse log and prepare DataFrame 
-    '''
-
-    all_ops = []
-    parse_log(file_name, all_ops)
-    operations = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
-
-    # Calculate runtime ratio
-    max_time = operations.elapsed_time.max()
-    operations["runtime_ratio"] = operations["real_time"] / max_time * 100
-
-    # Highlight low scale factor
-    operations["color"] = np.where(operations["scale_factor"] < 2, "gold", "grey")
-    operations["color"] = np.where(operations["scale_factor"] > 6, "greenyellow", operations["color"])
-    operations["color"] = np.where(operations["runtime_ratio"] > 50, "red", operations["color"])
-    operations["alpha"] = np.where(operations["scale_factor"] < 2, 0.9, 0.25)
-    return operations
-
 def gen_plot_page(df):
-    '''
-    Generate Pareto chart using Plotly 
-    '''
 
     # Uniquify by real_time and op_group page 
     df = df[df.sub_type=='FullOp']
@@ -271,7 +237,7 @@ def gen_plot_page(df):
     df['demarcation'] = 80
 
     # Filter out until 80% 
-    df = df.query('cumulative_perc < 90')
+    df = df.query('cumulative_perc < 80')
 
     # Prepare plotly data
     trace1 = Bar(
@@ -316,7 +282,7 @@ def gen_plot_page(df):
             family='Balto, sans-serif',
             size=12
         ),
-        width=1150,
+        width=1500,
         height=623,
         paper_bgcolor='rgb(240, 240, 240)',
         plot_bgcolor='rgb(240, 240, 240)',
@@ -337,29 +303,26 @@ def gen_plot_page(df):
                       showarrow=False,
                       xref="paper", yref="paper",
                       textangle=90,
-                      x=1.050, y=.75,
+                      x=1.029, y=.75,
                       font=dict(
                       family='Balto, sans-serif',
                       size=14,
                       color='rgba(243,158,115,.9)'
                 ),)],
         xaxis=dict(
-          tickangle=-90,
-          autorange=True,
-          autotick=True
+          tickangle=-90
         ),
         yaxis=dict(
             title='Real Time',
-            autorange=True,
             range=[0,30300],
           tickfont=dict(
                 color='rgba(34,163,192,.75)'
             ),
-          autotick=True,
-          titlefont=dict(
-              family='Balto, sans-serif',
-              size=14,
-              color='rgba(34,163,192,.75)')
+          tickvals = [0,6000,12000,18000,24000,30000],
+            titlefont=dict(
+                    family='Balto, sans-serif',
+                    size=14,
+                    color='rgba(34,163,192,.75)')
         ),
         yaxis2=dict(
             range=[0,101],
@@ -378,169 +341,16 @@ def gen_plot_page(df):
     offline.plot(fig, auto_open=False, filename="pareto_chart.html")
 
 
-########################################################################## 
-############################ Bokeh Server App ############################
-########################################################################## 
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        print("Please provide input file.")
+        exit()
 
+    input_file = sys.argv[1]
 
-#############  Start data processing  ############ 
-current_file = "run_latest.log"
-operations = prepare_operations(current_file)
+    all_ops = []
+    parse_log(input_file, all_ops)
 
+    df = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
 
-#############  Start Bokeh Configuration  ############ 
-axis_map = {
-    "CPU time": "cpu_time",
-    "Real time": "real_time",
-    "LVHEAP used": "lvheap_used",
-    "LVHEAP allocated": "lvheap_allocated",
-    "Scale factor": "scale_factor",
-    "Shared memory used": "shared_used",
-}
-
-########### Create Input controls ##########
-cpu_time = Slider(title="CPU Time", value=0, start=0,
-        end=operations.cpu_time.max(), step=10)
-real_time = Slider(title="Real time", value=0, start=0,
-        end=operations.real_time.max(), step=10)
-
-lvheap_used = Slider(title="Used LVHEAP", value=0, start=0,
-        end=operations.lvheap_used.max(), step=100)
-
-scale_factor = Slider(title="Scale factor", value=0, start=0,
-        end=operations.scale_factor.max(), step=1)
-
-shared_used = Slider(title="Shared memory used", value=0, start=0,
-        end=operations.shared_used.max(), step=1)
-
-sub_type = Select(title="SubType", value="All",
-        options= ['ALL'] + list(operations.sub_type.unique()))
-
-file_list = Select(title="File List", value=current_file,
-        options=[f for f in glob.iglob('**/*.log', recursive=True) if f.endswith('.log')])
-
-# Filter by Operation name and SubType 
-sub_type_name = TextInput(title="SubType")
-op_name = TextInput(title="Operation name")
-
-x_axis = Select(title="X Axis", options=sorted(axis_map.keys()), value="Real time")
-y_axis = Select(title="Y Axis", options=sorted(axis_map.keys()), value="LVHEAP used")
-
-
-############ Create Column Data Source that will be used by the plot ############  
-source = ColumnDataSource(data=dict(x=[], y=[], name=[], color=[],
-    alpha=[], sub_type=[], cpu_time=[], real_time=[], runtime_ratio=[],
-    scale_factor=[], lvheap_used=[], lvheap_allocated=[], shared_used=[],
-    fec=[], fgc=[], hec=[], hgc=[]))
-
-hover = HoverTool(tooltips=[
-    ("Operation Name (SubType)", "@name (@sub_type)"),
-    ("CPU time / Real time", "@cpu_time / @real_time"),
-    ("Scale factor / Runtime Ratio", "@scale_factor / @runtime_ratio%"),
-    ("LVHEAP: used, allocated", "@lvheap_used, @lvheap_allocated"),
-    ("Shared memory used", "@shared_used"),
-    ("FLAT: #edge, #geometry", "@fec, @fgc"),
-    ("HIER: #edge, #geometry", "@hec, @hgc")
-])
-
-# Layout General Setting 
-chart_width = 1000
-widget_width = 300
-
-# Gen Pareto chart
-gen_plot_page(operations)
-pareto_chart = Div(text=open("pareto_chart.html").read(), width=chart_width)
-
-p = figure(plot_height=600, plot_width=(chart_width-100), title="", toolbar_location=None,
-        tools=[hover, BoxZoomTool(), ResetTool()])
-p.left[0].formatter.use_scientific = False
-p.circle(x="x", y="y", source=source, size=10, color="color", line_color=None, fill_alpha="alpha")
-
-
-#############  Control callback function ############ 
-def select_operations():
-    global operations
-    global current_file
-    global pareto_chart 
-
-    sub_type_val = sub_type.value
-    sub_type_name_val = sub_type_name.value
-    op_name_val = op_name.value.strip()
-    file_name = file_list.value.strip()
-
-    # Parse log and replace data
-    if (file_name != current_file):
-        operations = prepare_operations(file_name)
-        current_file = file_name
-       
-        # Gen Pareto chart
-        gen_plot_page(operations)
-        l.children[1] = Div(text=open("pareto_chart.html").read(), width=chart_width)
-
-    selected = operations[
-        (operations.cpu_time >= cpu_time.value) &
-        (operations.real_time >= real_time.value) &
-        (operations.lvheap_used >= lvheap_used.value) &
-        (operations.scale_factor >= scale_factor.value) &
-        (operations.shared_used >= shared_used.value)
-    ]
-    if (sub_type_val != "All"):
-        selected = selected[selected.sub_type.str.contains(sub_type_val) == True]
-    if (op_name_val != ""):
-        selected = selected[selected.name.str.lower().str.contains(op_name_val.lower()) == True]
-    if (sub_type_name_val != ""):
-        selected = selected[selected.sub_type.str.lower().str.contains(sub_type_name_val.lower()) == True]
-    return selected
-
-
-def update():
-    df = select_operations()
-    x_name = axis_map[x_axis.value]
-    y_name = axis_map[y_axis.value]
-
-    p.xaxis.axis_label = x_axis.value
-    p.yaxis.axis_label = y_axis.value
-    p.title.text = "%d operations selected" % len(df)
-    source.data = dict(
-        x=df[x_name],
-        y=df[y_name],
-        name=df['name'],
-        sub_type=df['sub_type'],
-        color=df['color'],
-        alpha=df['alpha'],
-        cpu_time=df['cpu_time'],
-        real_time=df['real_time'],
-        runtime_ratio=df['runtime_ratio'],
-        scale_factor=df['scale_factor'],
-        lvheap_used=df['lvheap_used'],
-        lvheap_allocated=df['lvheap_allocated'],
-        shared_used=df['shared_used'],
-        fec=df['fec'],
-        fgc=df['fgc'],
-        hec=df['hec'],
-        hgc=df['hgc'],
-    )
-
-
-#############  Control panel configuration  ############ 
-controls = [file_list, cpu_time, real_time, lvheap_used, scale_factor, shared_used, sub_type, sub_type_name, op_name, x_axis, y_axis]
-for control in controls:
-    control.on_change('value', lambda attr, old, new: update())
-
-
-#############  Layout and finalization ############ 
-sizing_mode = 'fixed'  # 'scale_width' also looks nice with this example
-# sizing_mode = 'scale_width'
-
-# inputs = widgetbox(*controls, sizing_mode=sizing_mode)
-inputs = widgetbox(*controls, width=widget_width)
-l = layout([
-    [inputs, p],
-    [pareto_chart],
-], sizing_mode=sizing_mode)
-
-update()  # initial load of the data
-
-curdoc().add_root(l)
-curdoc().title = "Calibre transcript analystic"
-
+    gen_plot_page(df)
