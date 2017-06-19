@@ -6,7 +6,7 @@ import numpy as np
 from bokeh.plotting import figure
 from bokeh.layouts import layout, widgetbox, row, column
 from bokeh.models import ColumnDataSource, HoverTool, BoxZoomTool, ResetTool, Div
-from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn#, DateFormatter
+from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn, NumberFormatter
 from bokeh.io import curdoc
 
 from plotly.offline import download_plotlyjs, offline 
@@ -35,7 +35,6 @@ class Ops:
         self.lvheap = ""
         self.shared = ""
         self.elapsed_time = 0
-        # self.scale_factor = 0.0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = 0, 0, 0
         self.shared_used, self.shared_allocated = 0, 0
 
@@ -59,9 +58,6 @@ class Ops:
         self.shared = ""
         self.elapsed_time = 0
 
-        # calculated number
-        # self.scale_factor = 0.0
-
     # For sub_op1
     def init_sub_op1(self, cpu_time, real_time, lvheap, shared, name):
         self.sub_type = name
@@ -69,7 +65,6 @@ class Ops:
         self.real_time = float(real_time)
         self.lvheap = lvheap
         self.shared = shared
-        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = self.lvheap.split('/')
         self.shared_used, self.shared_allocated = self.shared.split('/')
 
@@ -78,7 +73,6 @@ class Ops:
         self.sub_typ = name
         self.cpu_time = float(cpu_time)
         self.real_time = float(real_time)
-        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
 
     def add_main_op(self, name, optype, cfg, typ, hgc, fgc, hec, fec, igc, vhc, vpc):
         self.name = name + " - " + self.sub_type
@@ -98,7 +92,6 @@ class Ops:
         self.real_time = float(real_time)
         self.lvheap = lvheap
         self.elapsed_time = float(elapsed_time)
-        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = self.lvheap.split('/')
 
     def add_op3(self, cpu_time, real_time, lvheap, shared, elapsed_time):
@@ -107,7 +100,6 @@ class Ops:
         self.lvheap = lvheap
         self.shared = shared
         self.elapsed_time = float(elapsed_time)
-        # self.scale_factor = self.cpu_time / self.real_time if self.real_time and self.real_time is not None else 0
         self.lvheap_used, self.lvheap_allocated, self.lvheap_max = self.lvheap.split('/')
         self.shared_used, self.shared_allocated = self.shared.split('/')
 
@@ -127,7 +119,6 @@ class Ops:
             'vpc': self.vpc,
             'cpu_time': self.cpu_time,
             'real_time': self.real_time,
-            # 'scale_factor': self.scale_factor,
             'lvheap_used': int(self.lvheap_used),
             'lvheap_allocated': int(self.lvheap_allocated),
             'lvheap_max': int(self.lvheap_max),
@@ -264,7 +255,6 @@ def gen_plot_page(df, chart_width):
 
     # Uniquify by real_time and op_group page 
     df = df.loc[df.sub_type=='FullOp', ['real_time','op_group']]
-    # df = df[['real_time','op_group']]
     df = df.drop_duplicates()
     df = df.sort_values(by="real_time",ascending=False)
 
@@ -277,7 +267,7 @@ def gen_plot_page(df, chart_width):
     # Filter out until 80% 
     # df = df.query('cumulative_perc < 200')
    
-    # Show first 20 rows 
+    # Show Top 20 rows 
     df = df.head(20)
 
     # Prepare plotly data
@@ -395,7 +385,10 @@ def gen_data_table(df, chart_width):
         'lvheap_used', 'lvheap_allocated', 'shared_used']]
     df = df.drop_duplicates()
     
+    # Show Top 20 rows 
     df = df.sort_values(by="real_time", ascending=False)
+    df = df.head(20)
+
     data = dict(df[['op_group', 'sub_type', 'cpu_time', 'real_time', 'runtime_ratio', 'scale_factor',
         'lvheap_used', 'lvheap_allocated', 'shared_used']])#, 'fec', 'fgc', 'hec', 'hgc']])
     source = ColumnDataSource(data)
@@ -405,8 +398,8 @@ def gen_data_table(df, chart_width):
             TableColumn(field='sub_type', title='Sub-Op Type'),
             TableColumn(field='cpu_time', title='CPU time'),
             TableColumn(field='real_time', title='Real time'),
-            TableColumn(field='runtime_ratio', title='Runtime ratio'),
-            TableColumn(field='scale_factor', title='Scale factor'),
+            TableColumn(field='runtime_ratio', title='Runtime ratio', formatter=NumberFormatter(format="0.00")),
+            TableColumn(field='scale_factor', title='Scale factor', formatter=NumberFormatter(format="0.00")),
             TableColumn(field='lvheap_used', title='LVHEAP used'),
             TableColumn(field='lvheap_allocated', title='LVHEAP allocated'),
             TableColumn(field='shared_used', title='Shared used'),
