@@ -13,6 +13,28 @@ from plotly.offline import download_plotlyjs, offline
 from plotly.graph_objs import *
 import plotly
 
+
+#############  Class for HDB memory monitor ############ 
+class HDB:
+    def __init__(self):
+        self.lvheap_used = [0]
+        self.lvheap_allocated = [0]
+        self.lvheap_max = [0]
+
+    def add_heap(self, heap_str):
+        l1, l2, l3 = heap_str.split('/')
+        # print("DEBUG: {}, {}, {} | {}".format(l1, l2, l3, heap_str))
+        self.lvheap_used.append(int(l1))
+        self.lvheap_allocated.append(int(l2))
+        self.lvheap_max.append(int(l3))
+        return heap_str
+
+    def add_dummy(self):
+        self.lvheap_used.append(self.lvheap_used[-1])
+        self.lvheap_allocated.append(self.lvheap_allocated[-1])
+        self.lvheap_max.append(self.lvheap_max[-1])
+
+
 #############  Class for operations  ############ 
 class Ops:
     # match op1 to create object for each calibre operations
@@ -136,13 +158,22 @@ class Ops:
             self.cpu_time, self.real_time, 0, self.lvheap, self.shared, self.elapsed_time)
 
 
-def parse_log(input_file, all_ops):
+def parse_log(input_file):
     '''
-    Parse Calibre log 
+    Parse Calibre Transcript
     '''
-    
+
+    # HDB 0
+    hdbs = []
+    h = HDB()
+    hdbs.append(h)
+    hdb_strings = ["HDB 0"]
+
+    all_ops  = []
     sub_ops  = []
+    last_op  = '' 
     last_ops = []
+    hdb_ops  = ['Init']
 
     # fSwissCheese (HIER TYP=1 CFG=1 HGC=322629 FGC=322629 HEC=1290516 FEC=1290516 IGC=585 VHC=F VPC=F)
     op1 = re.compile('(\S+) \((\S+) TYP=(\d+) CFG=(\d+) HGC=(\d+) FGC=(\d+) HEC=(\d+) FEC=(\d+) IGC=(\d+) VHC=(\w) VPC=(\w)\)')
@@ -158,14 +189,54 @@ def parse_log(input_file, all_ops):
 
     # CPU TIME = 14  REAL TIME = 8 - PUSH_OUT
     sub_op2 = re.compile('CPU TIME = (\d+)  REAL TIME = (\d+).?\s? - (\S+)')
-    # sub_op2 = re.compile('WARNING:\s+CPU TIME = (\d+)  REAL TIME = (\d+).?\s? - (\S+)')
 
+    ################ START OF LOG PARSE #################
+    start = False
     with open(input_file, "r") as f:
         for line in f:
-            if "CPU TIME" not in line and "FEC" not in line:
-                continue;
+            # //  Initializing MT on pseudo HDB 1
+            if "Initializing MT on pseudo HDB" in line:
+                hdb_strings.append("HDB " + str(len(hdbs)))
+                h = HDB()
+                hdbs.append(h)
+                continue
 
+            # Skip lines until operation transcript start 
+            if not start and 'EXECUTIVE MODULE' not in line:
+                continue
+        
+            if not start: 
+                start = True 
+            
             l = line.strip()
+
+            if 'Operation COMPLETED on HDB' in l:
+                # Get LVHEAP string
+                array = l.split(' ')
+                rev_idx = -1 if "RSS" not in line else -5
+                hdb_str = array[rev_idx]
+    
+                hdb_idx = 0
+                if " HDB " in line:
+                    for idx, s in enumerate(hdb_strings):
+                        if s in line:
+                            hdb_idx = idx
+                            break
+                # if "HDB x" not in line, it's for HDB 0 
+                # print("DEBUG: {} to {}".format(l, hdb_strings[hdb_idx]))
+    
+                for idx, hdb in enumerate(hdbs):
+                    if idx == hdb_idx:
+                        hdb.add_heap(hdb_str)
+                    else:
+                        hdb.add_dummy()
+    
+                hdb_ops.append(last_op)
+                continue
+
+            
+            if "CPU TIME" not in line and "FEC" not in line:
+                continue
 
             if "WARNING" in line and "REAL TIME = 0" not in line:
                 sub_op1_result = sub_op1.match(l)
@@ -188,7 +259,7 @@ def parse_log(input_file, all_ops):
             if result1:
                 op = Ops()
                 op.init_op1(*result1.groups())
-                op.op_group = last_ops[0].name if len(last_ops)!=0 else op.name
+                last_op = op.op_group = last_ops[0].name if len(last_ops)!=0 else op.name
                 last_ops.append(op)
 
                 if len(sub_ops) != 0:
@@ -223,16 +294,50 @@ def parse_log(input_file, all_ops):
 
                     last_ops.clear()
 
-    # all_ops.sort(key=lambda x: x.real_time)
+    ################ END OF LOG PARSE #################
+
+    # Post operations for HDB monitoring 
+    lvheap_used = {}
+    lvheap_allocated = {}
+    lvheap_max  = {}
+
+    lvheap_used['op'] = hdb_ops
+    lvheap_allocated['op'] = hdb_ops
+    lvheap_max['op'] = hdb_ops
+
+    for idx, s in enumerate(hdb_strings):
+        lvheap_used[s] = hdbs[idx].lvheap_used
+        lvheap_allocated[s] = hdbs[idx].lvheap_allocated
+        lvheap_max[s] = hdbs[idx].lvheap_max
+
+    hdb1 = calculate_sum_dif(pd.DataFrame(lvheap_used))
+    hdb2 = calculate_sum_dif(pd.DataFrame(lvheap_allocated))
+    hdb3 = calculate_sum_dif(pd.DataFrame(lvheap_max))
+
+    operations = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
+
+    return operations, hdb1, hdb2, hdb3 
+
+
+def calculate_sum_dif(df):
+    '''
+    Calculate 'SUM' & 'Dif' columns for HDB DataFrames 
+    '''
+    
+    df['Sum'] = df['HDB 0'] + df['HDB 1'] + df['HDB 2'] + df['HDB 3'] + df['HDB 4']
+    df['Dif'] = df['Sum'].diff(1) / df['Sum'].shift(1)
+    df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
+    df = df.set_index('op')
+    return df
+
 
 def prepare_operations(file_name):
     '''
     Parse log and prepare DataFrame 
     '''
 
-    all_ops = []
-    parse_log(file_name, all_ops)
-    operations = pd.DataFrame.from_records([op.to_dict() for op in all_ops])
+    # Parse log
+    operations, hdb1, hdb2, hdb3 = parse_log(file_name)
 
     # Calculate runtime ratio
     max_time = operations.elapsed_time.max()
@@ -246,7 +351,7 @@ def prepare_operations(file_name):
     operations["color"] = np.where(operations["scale_factor"] > 6, "greenyellow", operations["color"])
     operations["color"] = np.where(operations["runtime_ratio"] > 50, "red", operations["color"])
     operations["alpha"] = np.where(operations["scale_factor"] < 2, 0.9, 0.25)
-    return operations
+    return operations, hdb1, hdb2, hdb3
 
 def gen_plot_page(df, chart_width):
     '''
@@ -415,7 +520,7 @@ def gen_data_table(df, chart_width):
 
 #############  Start data processing  ############ 
 current_file = "run_latest.log"
-operations = prepare_operations(current_file)
+operations, hdb1, hdb2, hdb3 = prepare_operations(current_file)
 
 
 #############  Start Bokeh Configuration  ############ 
@@ -487,7 +592,7 @@ def select_operations():
 
     # Parse log and replace data
     if (file_name != current_file):
-        operations = prepare_operations(file_name)
+        operations, hdb1, hdb2, hdb3 = prepare_operations(file_name)
         current_file = file_name
        
         # Gen and reload Pareto chart
@@ -577,5 +682,5 @@ l = layout([
 update()  # initial load of the data
 
 curdoc().add_root(l)
-curdoc().title = "Calibre transcript analystic"
+curdoc().title = "Calibre Transcript Analystic"
 
